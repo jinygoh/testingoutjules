@@ -1,0 +1,40 @@
+<!-- todo_app/templates/todo_app/todoitem_confirm_delete.html -->
+<!-- This template is displayed by the TodoItemDeleteView to ask the user
+for confirmation before deleting a To-Do item.
+It extends base.html.
+The view provides the `object` (or `todoitem`) variable representing the item to be deleted.
+-->
+
+{% extends "todo_app/base.html" %}
+
+{% block title %}Confirm Delete - {{ object.title }} - {{ block.super }}{% endblock title %}
+
+{% block content %}
+    <h2>Confirm Deletion</h2>
+
+    <p>Are you sure you want to delete the to-do item: <strong>"{{ object.title }}"</strong>?</p>
+
+    {% if object.description %}
+        <p>Description: {{ object.description|linebreaksbr }}</p>
+    {% endif %}
+
+    <p>This action cannot be undone.</p>
+
+    <!-- The form submits to the same URL (the delete view's URL).
+         The DeleteView handles the POST request to perform the deletion.
+    -->
+    <form method="post" class="delete-confirm-form">
+        <!-- CSRF token is required for security. -->
+        {% csrf_token %}
+
+        <!-- Submit button to confirm deletion -->
+        <button type="submit" class="button delete">Yes, delete it</button>
+
+        <!-- Link to cancel and go back to the list view.
+             `request.META.HTTP_REFERER` could be used to go back to the previous page,
+             but linking directly to the list is often safer and more predictable.
+        -->
+        <a href="{% url 'todo_app:todoitem_list' %}" class="button cancel">No, take me back</a>
+    </form>
+
+{% endblock content %}

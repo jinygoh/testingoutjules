@@ -1,0 +1,66 @@
+<!-- todo_app/templates/todo_app/todoitem_form.html -->
+<!-- This template is used for both creating new To-Do items (CreateView)
+and updating existing ones (UpdateView).
+It extends base.html and renders a Django form.
+-->
+
+{% extends "todo_app/base.html" %}
+
+{% block title %}
+    <!-- Dynamically set the title based on whether we are creating or updating.
+         The `object` variable is available in UpdateView (the item being updated).
+         It's not available in CreateView for a new item.
+    -->
+    {% if object %}
+        Edit Todo: {{ object.title }}
+    {% else %}
+        Create New Todo
+    {% endif %}
+    - {{ block.super }}
+{% endblock title %}
+
+{% block content %}
+    <h2>
+        {% if object %}
+            Edit Todo Item: "{{ object.title }}"
+        {% else %}
+            Create a New Todo Item
+        {% endif %}
+    </h2>
+
+    <!-- The form is submitted via POST method.
+         `action` attribute is empty, meaning the form will submit to the current URL.
+         This is standard practice for Django CreateView and UpdateView.
+    -->
+    <form method="post" class="todo-form">
+        <!-- `csrf_token` is a security measure to prevent Cross-Site Request Forgery.
+             It must be included in all Django forms that use the POST method.
+        -->
+        {% csrf_token %}
+
+        <!-- Render the form fields.
+             `form.as_p` renders each form field wrapped in a <p> tag.
+             Other options include `form.as_ul` (for <ul> list) and `form.as_table` (for <table>).
+             You can also render fields individually for more control over layout:
+             Example:
+             <div class="form-field">
+                 {{ form.title.label_tag }}
+                 {{ form.title }}
+                 {% if form.title.help_text %}<small>{{ form.title.help_text }}</small>{% endif %}
+                 {% for error in form.title.errors %}<p class="error">{{ error }}</p>{% endfor %}
+             </div>
+        -->
+        {{ form.as_p }}
+
+        <!-- Submit button -->
+        <button type="submit" class="button save">
+            {% if object %}
+                Save Changes
+            {% else %}
+                Create Todo
+            {% endif %}
+        </button>
+        <a href="{% url 'todo_app:todoitem_list' %}" class="button cancel">Cancel</a>
+    </form>
+
+{% endblock content %}

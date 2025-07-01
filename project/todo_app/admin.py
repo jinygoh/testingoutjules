@@ -3,7 +3,7 @@
 # for administrators to create, read, update, and delete instances of that model.
 
 from django.contrib import admin
-from .models import TodoItem # Import the TodoItem model
+from .models import TodoItem  # Import the TodoItem model
 
 # To make the TodoItem model accessible in the admin interface,
 # you would register it like this:

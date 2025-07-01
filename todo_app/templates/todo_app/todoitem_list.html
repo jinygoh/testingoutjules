@@ -1,0 +1,64 @@
+<!-- todo_app/templates/todo_app/todoitem_list.html -->
+<!-- This template displays a list of all To-Do items.
+It extends the base.html template to maintain a consistent layout.
+It receives a list of todo items from the TodoItemListView (context_object_name='todo_items').
+-->
+
+{% extends "todo_app/base.html" %} <!-- Extends the base template -->
+
+{% block title %}Todo List - {{ block.super }}{% endblock title %} <!-- Appends to the title block from base.html -->
+
+{% block content %} <!-- Overrides the content block from base.html -->
+    <h2>Current Todo Items</h2>
+
+    <!-- Link to create a new todo item.
+         The `url` template tag generates the URL for the 'todoitem_create' view
+         within the 'todo_app' namespace.
+    -->
+    <p><a href="{% url 'todo_app:todoitem_create' %}" class="button add-new">Add New Todo Item</a></p>
+
+    <!-- Check if there are any todo items to display -->
+    {% if todo_items %}
+        <ul class="todo-list">
+            <!-- Loop through each todo item in the todo_items list -->
+            {% for item in todo_items %}
+                <li class="todo-item {% if item.completed %}completed{% endif %}">
+                    <h3>
+                        <!-- Display the title of the todo item.
+                             `escape` filter is implicitly applied to prevent XSS.
+                        -->
+                        {{ item.title }}
+                    </h3>
+                    <p class="description">
+                        <!-- Display the description.
+                             The `linebreaksbr` filter converts newlines into <br> tags.
+                             The `truncatewords` filter limits the description length.
+                        -->
+                        {{ item.description|linebreaksbr|truncatewords:30 }}
+                    </p>
+                    <p class="meta">
+                        <small>
+                            Created: {{ item.created_at|date:"Y-m-d H:i" }} |
+                            Updated: {{ item.updated_at|date:"Y-m-d H:i" }} |
+                            Status: {% if item.completed %}Completed{% else %}Pending{% endif %}
+                        </small>
+                    </p>
+                    <div class="actions">
+                        <!-- Link to update the todo item.
+                             Passes item.pk to the 'todoitem_update' URL.
+                        -->
+                        <a href="{% url 'todo_app:todoitem_update' pk=item.pk %}" class="button edit">Edit</a>
+                        <!-- Link to delete the todo item.
+                             Passes item.pk to the 'todoitem_delete' URL.
+                        -->
+                        <a href="{% url 'todo_app:todoitem_delete' pk=item.pk %}" class="button delete">Delete</a>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <!-- Message displayed if there are no todo items -->
+        <p>No to-do items yet. Why not <a href="{% url 'todo_app:todoitem_create' %}">add one</a>?</p>
+    {% endif %}
+
+{% endblock content %}

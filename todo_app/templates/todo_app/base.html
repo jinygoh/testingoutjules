@@ -1,0 +1,60 @@
+<!-- todo_app/templates/todo_app/base.html -->
+<!-- This is the base template for the todo_app.
+Other templates in this app will extend this file.
+It defines the common structure of the pages, like the header, navigation,
+and a block for content that child templates will fill.
+Using a base template promotes DRY (Don't Repeat Yourself) principle.
+It also makes it easier to maintain a consistent look and feel across the app.
+-->
+{% load static %} <!-- Load the staticfiles template tags -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}My Todo App{% endblock title %}</title>
+    <!-- Link to a CSS file for basic styling.
+         The `static` template tag generates the URL for static files.
+         This requires `django.contrib.staticfiles` to be in INSTALLED_APPS
+         and STATIC_URL to be configured in settings.py.
+    -->
+    <link rel="stylesheet" href="{% static 'todo_app/style.css' %}">
+</head>
+<body>
+    <header>
+        <h1><a href="{% url 'todo_app:todoitem_list' %}">Todo List Application</a></h1>
+        <nav>
+            <a href="{% url 'todo_app:todoitem_list' %}">View All Todos</a> |
+            <a href="{% url 'todo_app:todoitem_create' %}">Add New Todo</a>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Django messages framework display -->
+        <!-- This section will display messages set by views (e.g., success messages after form submission).
+             It requires the messages middleware to be enabled.
+        -->
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <!-- The `content` block. Child templates will override this block
+             to provide their specific content.
+        -->
+        {% block content %}
+        <p>Welcome to the Todo App! This is default content from base.html.</p>
+        {% endblock content %}
+    </main>
+
+    <footer>
+        <p>&copy; {% now "Y" %} Learning Django Project. For educational purposes.</p>
+    </footer>
+
+    <!-- Optional: Add JavaScript files here -->
+    <!-- <script src="{% static 'todo_app/script.js' %}"></script> -->
+</body>
+</html>

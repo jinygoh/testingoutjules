@@ -1,0 +1,223 @@
+/* todo_app/static/todo_app/style.css */
+/* This file provides basic styling for the To-Do application.
+   It's loaded via the `static` template tag in base.html.
+   To use static files like this, `django.contrib.staticfiles` must be in INSTALLED_APPS,
+   and `STATIC_URL` (usually '/static/') must be set in settings.py.
+   During development, Django's development server automatically serves static files
+   from `static` directories within each app. For production, you'll need to run
+   `python manage.py collectstatic`.
+*/
+
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+header {
+    background: #333;
+    color: #fff;
+    padding: 1rem 0;
+    text-align: center;
+}
+
+header h1 a {
+    color: #fff;
+    text-decoration: none;
+}
+
+header nav a {
+    color: #fff;
+    margin: 0 10px;
+    text-decoration: none;
+}
+
+header nav a:hover {
+    text-decoration: underline;
+}
+
+main {
+    width: 80%;
+    margin: 20px auto;
+    padding: 20px;
+    background: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+h2 {
+    color: #333;
+    margin-top: 0;
+}
+
+/* Messages framework styling */
+.messages {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 20px;
+}
+.messages li {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
+.messages li.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+.messages li.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+.messages li.warning {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+}
+.messages li.info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+
+/* Todo List Styling */
+.todo-list {
+    list-style: none;
+    padding: 0;
+}
+
+.todo-item {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    margin-bottom: 10px;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+.todo-item.completed {
+    background: #e9ffe9;
+    border-left: 5px solid #5cb85c;
+}
+
+.todo-item.completed h3 {
+    text-decoration: line-through;
+    color: #777;
+}
+
+.todo-item h3 {
+    margin-top: 0;
+    margin-bottom: 5px;
+}
+
+.todo-item .description {
+    font-size: 0.9em;
+    color: #555;
+    margin-bottom: 10px;
+}
+
+.todo-item .meta {
+    font-size: 0.8em;
+    color: #777;
+    margin-bottom: 10px;
+}
+
+.todo-item .actions a {
+    margin-right: 10px;
+}
+
+/* Form Styling */
+.todo-form p {
+    margin-bottom: 15px;
+}
+
+.todo-form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.todo-form input[type="text"],
+.todo-form textarea {
+    width: calc(100% - 22px); /* Account for padding and border */
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box; /* Important for width calculation */
+}
+
+.todo-form input[type="checkbox"] {
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+.todo-form textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+/* Button Styling */
+.button, button[type="submit"] {
+    display: inline-block;
+    padding: 10px 15px;
+    background-color: #5cb85c;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.button:hover, button[type="submit"]:hover {
+    background-color: #4cae4c;
+}
+
+.button.edit {
+    background-color: #f0ad4e;
+}
+.button.edit:hover {
+    background-color: #ec971f;
+}
+
+.button.delete {
+    background-color: #d9534f;
+}
+.button.delete:hover {
+    background-color: #c9302c;
+}
+
+.button.cancel {
+    background-color: #777;
+}
+.button.cancel:hover {
+    background-color: #555;
+}
+
+.button.add-new {
+    margin-bottom: 20px;
+    background-color: #337ab7;
+}
+.button.add-new:hover {
+    background-color: #286090;
+}
+
+
+/* Delete Confirmation Form */
+.delete-confirm-form {
+    margin-top: 20px;
+}
+
+footer {
+    text-align: center;
+    margin-top: 30px;
+    padding: 20px;
+    background: #333;
+    color: #fff;
+    font-size: 0.9em;
+}

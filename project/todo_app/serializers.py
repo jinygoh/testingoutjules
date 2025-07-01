@@ -10,6 +10,7 @@
 from rest_framework import serializers
 from .models import TodoItem
 
+
 class TodoItemSerializer(serializers.ModelSerializer):
     # Meta class defines metadata for the serializer.
     class Meta:
@@ -18,4 +19,4 @@ class TodoItemSerializer(serializers.ModelSerializer):
         # fields: Specifies the fields from the model that should be included in the serialization.
         # '__all__' means all fields from the TodoItem model will be used.
         # Alternatively, you can provide a list of field names, e.g., ['id', 'title', 'completed'].
-        fields = '__all__'
+        fields = "__all__"
