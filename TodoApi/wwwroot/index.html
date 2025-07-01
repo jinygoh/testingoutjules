@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Todo API Client</title>
+    <!-- This file provides a simple HTML interface to interact with the Todo API. -->
+    <!-- It allows users to view, add, edit, and delete To-do items. -->
+    <!-- It works in conjunction with site.js, which contains the JavaScript logic -->
+    <!-- for making API calls and updating the UI. -->
+    <link rel="stylesheet" href="css/site.css" />
+</head>
+<body>
+    <h1>ASP.NET Core Todo API</h1>
+    <hr />
+
+    <!-- Form to add a new To-do item -->
+    <h2>Add New Todo</h2>
+    <form action="javascript:void(0);" method="POST" onsubmit="addTodo()">
+        <input type="text" id="add-name" placeholder="New todo name" required>
+        <input type="checkbox" id="add-isComplete">
+        <label for="add-isComplete">Is Complete?</label>
+        <input type="submit" value="Add">
+    </form>
+
+    <hr />
+
+    <!-- Div to display and edit a single To-do item -->
+    <div id="editForm" style="display: none;">
+        <h2>Edit Todo</h2>
+        <form action="javascript:void(0);" onsubmit="updateTodo()">
+            <input type="hidden" id="edit-id">
+            <input type="text" id="edit-name" required>
+            <input type="checkbox" id="edit-isComplete">
+            <label for="edit-isComplete">Is Complete?</label>
+            <input type="submit" value="Save">
+            <a onclick="closeEditForm()" aria-label="Close">&#10006;</a>
+        </form>
+    </div>
+
+    <hr />
+
+    <!-- Table to display the list of To-do items -->
+    <h2>Todo List</h2>
+    <p id="counter"></p>
+    <table>
+        <thead>
+            <tr>
+                <th>Is Complete?</th>
+                <th>Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="todos">
+            <!-- Todo items will be populated here by site.js -->
+        </tbody>
+    </table>
+
+    <!-- JavaScript file containing the logic for API interaction and UI updates -->
+    <script src="js/site.js" asp-append-version="true"></script>
+</body>
+</html>
