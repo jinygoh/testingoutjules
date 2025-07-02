@@ -1,0 +1,30 @@
+{
+  "name": "express-crash-course",
+  "version": "1.0.0",
+  "description": "A crash course on Express.js with examples.",
+  "main": "02-hello-world.js",
+  "scripts": {
+    "start:hello": "node 02-hello-world.js",
+    "start:routing": "node 03-routing.js",
+    "start:middleware": "node 04-middleware.js",
+    "start:reqres": "node 05-req-res-objects.js",
+    "start:static": "node 06-static-files.js",
+    "start:templating": "node 07-templating-ejs.js",
+    "start:api": "node 08-simple-rest-api.js",
+    "start:error": "node 09-error-handling.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "express",
+    "nodejs",
+    "tutorial",
+    "crash-course"
+  ],
+  "author": "AI Assistant",
+  "license": "ISC",
+  "dependencies": {
+    "ejs": "^3.1.9",
+    "express": "^4.18.2",
+    "morgan": "^1.10.0"
+  }
+}

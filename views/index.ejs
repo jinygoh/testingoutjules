@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f9f9f9; color: #333; }
+        h1 { color: #4CAF50; }
+        ul { list-style-type: none; padding: 0; }
+        li { background-color: #fff; margin-bottom: 5px; padding: 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .user-info { margin-bottom: 10px; }
+        .user-info strong { color: #555; }
+        .admin { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1><%= heading %></h1>
+
+    <p><%= message %></p>
+
+    <% if (user) { %>
+        <div class="user-info">
+            <p>Welcome, <strong><%= user.name %></strong>!</p>
+            <p>Your email is: <strong><%= user.email %></strong></p>
+            <% if (user.isAdmin) { %>
+                <p class="admin">You have administrator privileges.</p>
+            <% } %>
+        </div>
+    <% } else { %>
+        <p>No user data provided.</p>
+    <% } %>
+
+    <h2>Shopping List:</h2>
+    <% if (items && items.length > 0) { %>
+        <ul>
+            <% items.forEach(function(item) { %>
+                <li><%= item %></li>
+            <% }); %>
+        </ul>
+    <% } else { %>
+        <p>Your shopping list is empty!</p>
+    <% } %>
+
+    <hr>
+    <p><em>This page was rendered using EJS template engine.</em></p>
+</body>
+</html>
