@@ -1,0 +1,18 @@
+// AspNetCrashCourse/Views/Home/Index.cshtml
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome to the ASP.NET Core Crash Course</h1>
+    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+
+    <h2>Course Content Overview:</h2>
+    <ul>
+        <li><a asp-controller="Product" asp-action="Index">Product Management (MVC)</a></li>
+        <li>View API endpoint: <a href="/api/productsapi">/api/productsapi</a> (once created)</li>
+    </ul>
+
+    <p>This is a sample application to demonstrate the basics of ASP.NET Core MVC and Web API.</p>
+    <p>Follow the README.md for instructions on setting up and running this project.</p>
+</div>

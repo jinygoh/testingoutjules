@@ -1,0 +1,112 @@
+@* AspNetCrashCourse/Views/Product/Index.cshtml *@
+@model IEnumerable<AspNetCrashCourse.Models.Product>
+
+@{
+    ViewData["Title"] = "Product List";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New Product</a>
+</p>
+
+@if (Model == null || !Model.Any())
+{
+    <p>No products available. Consider running database migrations if you haven't, or add some products.</p>
+    <p>The database might have been seeded with some initial products if this is the first run after migrations.</p>
+}
+else
+{
+    <table class="table table-striped table-hover">
+        <thead class="thead-dark">
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.Name)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Price)
+                </th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Name)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Price)
+                    </td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info">Details</a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<hr />
+<div id="apiProductDisplaySection">
+    <h4>Frontend API Interaction Example:</h4>
+    <p>
+        The section below is a placeholder to demonstrate how JavaScript (in a real app, likely from a separate file)
+        could fetch data from the <code>/api/productsapi</code> endpoint (which will be built in the next module)
+        and display it here.
+    </p>
+    <button id="loadProductsFromApiBtn" class="btn btn-info">Load Products from API</button>
+    <div id="apiProductDisplay" class="mt-2">
+        <h5>Products Loaded from API:</h5>
+        <ul id="apiProductList" class="list-group">
+            <!-- Products will be listed here by JavaScript -->
+        </ul>
+        <p id="apiStatusMessage"></p>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const loadButton = document.getElementById('loadProductsFromApiBtn');
+            const productListUl = document.getElementById('apiProductList');
+            const apiStatusMessage = document.getElementById('apiStatusMessage');
+
+            if (loadButton) {
+                loadButton.addEventListener('click', function() {
+                    fetch('/api/productsapi') // This API endpoint will be created in a later step
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok: ' + response.statusText + ' (Status: ' + response.status + ')');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            console.log('Products from API:', data);
+                            productListUl.innerHTML = ''; // Clear existing items
+                            if (data && data.length > 0) {
+                                data.forEach(product => {
+                                    const listItem = document.createElement('li');
+                                    listItem.classList.add('list-group-item');
+                                    listItem.textContent = `${product.name} - $${product.price.toFixed(2)}`;
+                                    productListUl.appendChild(listItem);
+                                });
+                                apiStatusMessage.textContent = 'Products loaded successfully from API.';
+                            } else {
+                                apiStatusMessage.textContent = 'No products returned from API.';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('There has been a problem with your fetch operation:', error);
+                            apiStatusMessage.textContent = 'Error loading products from API: ' + error.message + '. Make sure the API endpoint is running and returns data.';
+                            productListUl.innerHTML = '<li class="list-group-item text-danger">Could not load products.</li>';
+                        });
+                });
+            }
+        });
+    </script>
+}
