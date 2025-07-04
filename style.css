@@ -1,0 +1,252 @@
+/* style.css */
+:root {
+    --background-color: #121212;
+    --panel-color: #1E1E1E;
+    --primary-accent-color: #007BFF; /* Bright Blue */
+    /* --primary-accent-color: #8A2BE2; */ /* Cool Purple - Alternative */
+    --text-color: #E0E0E0;
+    --light-gray-text: #B0B0B0;
+    --border-color: #2a2a2a;
+    --input-background: #252525;
+    --button-hover-bg: #0056b3; /* Darker blue for hover */
+    --button-active-bg: #004085; /* Even darker for active */
+
+    --white-key-color: #DBDBDB;
+    --black-key-color: #222222;
+    --key-active-color: var(--primary-accent-color);
+
+    --font-family: 'Inter', 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, "Helvetica Neue", sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--background-color);
+    color: var(--text-color);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    font-size: 16px;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 25px;
+    background-color: var(--panel-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+header h1 {
+    font-size: 1.8em;
+    color: var(--primary-accent-color);
+}
+
+#randomize-all-btn {
+    background: none;
+    border: 1px solid var(--primary-accent-color);
+    color: var(--primary-accent-color);
+    font-size: 1.5em; /* Make dice icon larger */
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+#randomize-all-btn:hover {
+    background-color: var(--primary-accent-color);
+    color: var(--panel-color);
+}
+
+main {
+    display: flex;
+    flex-grow: 1;
+    padding: 20px;
+    gap: 20px;
+}
+
+.keyboard-container {
+    flex: 0 0 100px; /* Fixed width for the keyboard */
+    background-color: var(--panel-color);
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid var(--border-color);
+}
+
+#side-keyboard-canvas {
+    width: 100%;
+    height: 100%; /* Canvas will be sized by JS based on piano roll */
+}
+
+.content-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+section {
+    background-color: var(--panel-color);
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+section h2 {
+    font-size: 1.4em;
+    margin-bottom: 15px;
+    color: var(--primary-accent-color);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+.control-panel .control-group {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.control-panel label {
+    min-width: 100px;
+    color: var(--light-gray-text);
+}
+
+.control-panel select,
+.control-panel input[type="range"] {
+    flex-grow: 1;
+    padding: 8px;
+    background-color: var(--input-background);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 0.95em;
+}
+
+.control-panel input[type="range"] {
+    padding: 0; /* Override default padding for range */
+}
+
+.control-panel #tempo-value {
+    min-width: 30px;
+    text-align: right;
+}
+
+button {
+    background-color: var(--primary-accent-color);
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.2s ease-in-out;
+}
+
+button:hover {
+    background-color: var(--button-hover-bg);
+}
+
+button:active {
+    background-color: var(--button-active-bg);
+}
+
+#generate-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 1.1em;
+    margin-top: 10px;
+}
+
+.piano-roll-section .chord-names-display {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 10px;
+    padding: 8px;
+    background-color: var(--input-background);
+    border-radius: 4px;
+}
+
+.piano-roll-section .chord-names-display span {
+    flex: 1;
+    text-align: center;
+    font-size: 0.9em;
+    color: var(--light-gray-text);
+}
+
+#piano-roll-canvas {
+    width: 100%;
+    height: 300px; /* Default height, can be adjusted */
+    background-color: var(--input-background);
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+}
+
+.playback-export-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.playback-buttons,
+.export-buttons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.loop-toggle {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--light-gray-text);
+}
+
+.loop-toggle input[type="checkbox"] {
+    margin-right: 8px;
+    accent-color: var(--primary-accent-color); /* Style the checkbox */
+    width: 16px;
+    height: 16px;
+}
+
+/* Minimalistic scrollbar for webkit browsers */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--panel-color);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--primary-accent-color);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--button-hover-bg);
+}
+
+/* Tooltip (initially hidden) */
+.tooltip {
+    position: absolute;
+    background-color: #333;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    pointer-events: none; /* So it doesn't interfere with mouse events on canvas */
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 100;
+}

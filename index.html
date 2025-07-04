@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChordFlow</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Favicon (placeholder - a simple SVG dice icon) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎲</text></svg>">
+</head>
+<body>
+    <header>
+        <h1>ChordFlow</h1>
+        <button id="randomize-all-btn" aria-label="Randomize All">
+            <!-- Placeholder for a dice icon, e.g., SVG or Font Awesome -->
+            🎲
+        </button>
+    </header>
+
+    <main>
+        <div class="keyboard-container">
+            <canvas id="side-keyboard-canvas"></canvas>
+        </div>
+
+        <div class="content-container">
+            <section class="control-panel">
+                <h2>Controls</h2>
+                <div class="control-group">
+                    <label for="key-select">Key:</label>
+                    <select id="key-select">
+                        <!-- Options will be populated by JavaScript -->
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="scale-select">Scale/Mode:</label>
+                    <select id="scale-select">
+                        <!-- Options will be populated by JavaScript -->
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="tempo-slider">Tempo (BPM):</label>
+                    <input type="range" id="tempo-slider" min="60" max="180" value="120">
+                    <span id="tempo-value">120</span> BPM
+                </div>
+                <button id="generate-btn">Generate</button>
+            </section>
+
+            <section class="piano-roll-section">
+                <h2>Piano Roll</h2>
+                <div class="chord-names-display">
+                    <span id="chord-name-bar-1">-</span>
+                    <span id="chord-name-bar-2">-</span>
+                    <span id="chord-name-bar-3">-</span>
+                    <span id="chord-name-bar-4">-</span>
+                </div>
+                <canvas id="piano-roll-canvas"></canvas>
+            </section>
+
+            <section class="playback-export-controls">
+                <h2>Playback & Export</h2>
+                <div class="playback-buttons">
+                    <button id="play-pause-btn">Play</button>
+                    <button id="stop-btn">Stop</button>
+                    <label class="loop-toggle">
+                        <input type="checkbox" id="loop-checkbox" checked> Loop
+                    </label>
+                </div>
+                <div class="export-buttons">
+                    <button id="export-midi-btn">Export MIDI</button>
+                    <button id="export-wav-btn">Export WAV</button>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tonal/4.10.0/tonal.min.js"></script>
+    <!-- midi-writer-js (using a common CDN, ensure it's a reliable one or host locally) -->
+    <script src="https://cdn.jsdelivr.net/npm/midi-writer-js@2.1.4/build/midi-writer.min.js"></script>
+
+
+    <!-- Main application script -->
+    <script src="app.js"></script>
+</body>
+</html>
