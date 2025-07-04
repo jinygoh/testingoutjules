@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Tactics: AP/HP Chess</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <div id="board-container">
+            <canvas id="chess-board" width="480" height="480"></canvas>
+        </div>
+        <div id="ui-container">
+            <div id="game-status">
+                <p>Current Turn: <span id="current-turn">White</span></p>
+                <p id="game-message"></p>
+            </div>
+            <div id="captured-pieces-white" class="captured-pieces-container">
+                <p>White's Captured:</p>
+                <div id="white-captured-list"></div>
+            </div>
+            <div id="captured-pieces-black" class="captured-pieces-container">
+                <p>Black's Captured:</p>
+                <div id="black-captured-list"></div>
+            </div>
+            <button id="restart-button">Restart Game</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
