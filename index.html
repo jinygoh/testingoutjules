@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Endless Piano</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="controls-container">
+            <div class="control-group">
+                <label for="mood-selector">Mood:</label>
+                <select id="mood-selector">
+                    <option value="happy">Happy</option>
+                    <option value="calm">Calm</option>
+                    <option value="sad">Sad</option>
+                    <option value="mysterious">Mysterious</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <button id="play-pause-btn">Play</button>
+            </div>
+
+            <div class="control-group">
+                <label for="volume-slider">Volume:</label>
+                <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.75">
+            </div>
+
+            <div class="control-group">
+                <label for="tempo-slider">Tempo:</label>
+                <input type="range" id="tempo-slider" min="40" max="200" step="1" value="120">
+                <span id="tempo-display">120 BPM</span>
+            </div>
+
+            <div class="control-group">
+                <button id="record-btn">Record</button>
+            </div>
+
+            <div class="control-group">
+                <button id="download-midi-btn" disabled>Download MIDI</button>
+                <button id="download-wav-btn" disabled>Download WAV</button>
+            </div>
+        </header>
+
+        <main class="visualizer-container">
+            <!-- MIDI note visualization will be dynamically generated here -->
+        </main>
+
+        <footer class="piano-container">
+            <div class="piano-keyboard">
+                <!-- Piano keys will be dynamically generated here -->
+            </div>
+        </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/midi-writer-js@2.1.4/build/MidiWriter.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

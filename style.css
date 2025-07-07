@@ -1,0 +1,206 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #121212;
+    color: #E0E0E0;
+    overflow: hidden; /* Prevents scrollbars from visualizer overflow */
+    height: 100%;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh; /* Full viewport height */
+}
+
+.controls-container {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 15px;
+    background-color: #1E1E1E;
+    border-bottom: 1px solid #333;
+    flex-wrap: wrap; /* Allow controls to wrap on smaller screens */
+}
+
+.control-group {
+    margin: 5px 10px;
+    display: flex;
+    align-items: center;
+}
+
+.control-group label {
+    margin-right: 8px;
+    font-size: 0.9em;
+}
+
+.control-group select,
+.control-group input[type="range"],
+.control-group button {
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid #333;
+    background-color: #282828;
+    color: #E0E0E0;
+    font-size: 0.9em;
+}
+
+.control-group button {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.control-group button:hover {
+    background-color: #383838;
+}
+
+.control-group button:disabled {
+    background-color: #202020;
+    color: #555;
+    cursor: not-allowed;
+}
+
+.control-group input[type="range"] {
+    padding: 0; /* Remove default padding for range inputs for better cross-browser consistency */
+    vertical-align: middle;
+}
+
+#tempo-display {
+    margin-left: 8px;
+    min-width: 60px; /* Ensure space for "XXX BPM" */
+    font-size: 0.9em;
+}
+
+.visualizer-container {
+    flex-grow: 1;
+    position: relative; /* For absolute positioning of notes */
+    overflow: hidden; /* Notes should not cause scrollbars here */
+    background-color: #121212; /* Match body background */
+}
+
+.piano-container {
+    width: 100%;
+    background-color: #1E1E1E; /* Slightly different from main background */
+    padding: 10px 0;
+    border-top: 1px solid #333;
+}
+
+.piano-keyboard {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Align keys at the top */
+    height: 150px; /* Fixed height for the keyboard */
+    position: relative; /* For positioning black keys */
+}
+
+.piano-key {
+    position: relative; /* For pseudo-elements or future additions */
+    border: 1px solid #000;
+    box-sizing: border-box;
+    transition: background-color 0.1s ease-out; /* Quick fade out for highlight */
+}
+
+.piano-key.white {
+    background-color: #CCCCCC;
+    width: calc(100% / 36 * 0.95); /* 36 white keys in 5 octaves (61 keys total: 36 white, 25 black) */
+    height: 100%;
+    z-index: 1;
+}
+
+.piano-key.black {
+    background-color: #333333;
+    width: calc(100% / 36 * 0.55);
+    height: 60%; /* Shorter than white keys */
+    position: absolute;
+    z-index: 2;
+    margin-left: calc(100% / 36 * -0.275); /* Position relative to preceding white key */
+}
+
+.piano-key.highlighted {
+    background-color: #00FFFF; /* Vibrant blue/teal for highlight */
+}
+
+/* Specific offsets for black keys - this requires JS to add classes like 'offset-...' */
+.piano-key.black.offset-csharp { margin-left: calc(100% / 36 * 0.62); }
+.piano-key.black.offset-dsharp { margin-left: calc(100% / 36 * 1.65); }
+.piano-key.black.offset-fsharp { margin-left: calc(100% / 36 * 3.62); }
+.piano-key.black.offset-gsharp { margin-left: calc(100% / 36 * 4.65); }
+.piano-key.black.offset-asharp { margin-left: calc(100% / 36 * 5.68); }
+
+
+/* Note: The black key positioning will be tricky with pure CSS and dynamic generation.
+   It might be easier to calculate absolute positions in JS or use a more robust flex/grid layout if possible.
+   The above is a simplified relative positioning. A more common approach is to position black keys
+   absolutely relative to the .piano-keyboard container or specific white keys.
+   For now, JS will handle precise positioning.
+*/
+
+.midi-note-particle {
+    position: absolute;
+    bottom: 0; /* Start from the top of the key, will be animated upwards */
+    border-radius: 3px;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.3), 0 0 12px currentColor; /* Subtle glow + color hint */
+    opacity: 0.9;
+    /* Width and background color will be set by JS based on the key and pitch */
+}
+
+/* Example colors for pitch classes (to be applied by JS) */
+.pitch-c { background-color: #FF6B6B; box-shadow: 0 0 8px #FF6B6B; } /* Red */
+.pitch-csharp { background-color: #FF926B; box-shadow: 0 0 8px #FF926B; } /* Orange-Red */
+.pitch-d { background-color: #FFD16B; box-shadow: 0 0 8px #FFD16B; } /* Yellow */
+.pitch-dsharp { background-color: #ABFF6B; box-shadow: 0 0 8px #ABFF6B; } /* Lime Green */
+.pitch-e { background-color: #6BFFB8; box-shadow: 0 0 8px #6BFFB8; } /* Green-Cyan */
+.pitch-f { background-color: #6BFFFF; box-shadow: 0 0 8px #6BFFFF; } /* Cyan */
+.pitch-fsharp { background-color: #6BB8FF; box-shadow: 0 0 8px #6BB8FF; } /* Sky Blue */
+.pitch-g { background-color: #6B6BFF; box-shadow: 0 0 8px #6B6BFF; } /* Blue */
+.pitch-gsharp { background-color: #B86BFF; box-shadow: 0 0 8px #B86BFF; } /* Purple */
+.pitch-a { background-color: #FF6BFF; box-shadow: 0 0 8px #FF6BFF; } /* Magenta */
+.pitch-asharp { background-color: #FF6BB8; box-shadow: 0 0 8px #FF6BB8; } /* Pink */
+.pitch-b { background-color: #FF6B8E; box-shadow: 0 0 8px #FF6B8E; } /* Rose */
+
+/* Recording indicator */
+#record-btn.recording {
+    background-color: #FF6B6B; /* Red when recording */
+    color: white;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(255, 107, 107, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .controls-container {
+        flex-direction: column;
+        align-items: stretch; /* Make control groups take full width */
+    }
+    .control-group {
+        justify-content: space-between; /* Space out label and control */
+        margin: 8px 0;
+    }
+    .control-group label {
+        margin-right: 0; /* Remove fixed margin */
+    }
+    .piano-keyboard {
+        height: 120px; /* Slightly smaller keyboard on small screens */
+    }
+}
+
+@media (max-width: 480px) {
+    .control-group select,
+    .control-group input[type="range"],
+    .control-group button {
+        font-size: 0.8em;
+        padding: 6px 8px;
+    }
+    .piano-keyboard {
+        height: 100px;
+    }
+    #tempo-display {
+        font-size: 0.8em;
+    }
+}
