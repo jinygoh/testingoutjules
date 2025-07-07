@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura - Generative Ambient Music</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+    <div id="visuals-container">
+        <canvas id="visuals-canvas"></canvas>
+    </div>
+    <div id="ui-container">
+        <div id="info-display">
+            <span id="song-key"></span>
+            <span id="song-bpm"></span>
+            <span id="song-seed"></span>
+        </div>
+        <button id="play-pause-button">Play</button>
+        <button id="skip-button">Skip</button>
+    </div>
+    <script type="module" src="app.js"></script>
+</body>
+</html>
