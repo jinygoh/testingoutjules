@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-T">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Piano Muse - AI Piano Song Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <button id="btnGenerateFullSong">Generate Full Song</button>
+        <div class="controls-group">
+            <select id="selectMood">
+                <option value="happy">Happy</option>
+                <option value="sad">Sad</option>
+                <option value="epic">Epic</option>
+                <option value="calm">Calm</option>
+                <option value="mysterious">Mysterious</option>
+            </select>
+            <button id="btnGenerateMood">Generate Idea</button>
+        </div>
+        <div class="controls-group">
+            <label for="bpmSlider">BPM:</label>
+            <input type="range" id="bpmSlider" min="40" max="200" value="120">
+            <span id="bpmValue">120</span>
+        </div>
+    </header>
+
+    <main>
+        <div id="songInfoDisplay">
+            <span id="scaleDisplay">Key: C Major</span>
+            <span id="sectionDisplay">Section: Intro</span>
+        </div>
+        <div id="midiVisualizer">
+            <svg id="pianoRollSVG" width="100%" height="100%"></svg>
+            <!-- Section markers could be overlaid here or drawn in SVG -->
+        </div>
+    </main>
+
+    <footer>
+        <div id="playbackControls">
+            <button id="btnPlay">Play</button>
+            <button id="btnPause">Pause</button>
+            <button id="btnStop">Stop</button>
+            <input type="range" id="progressBar" value="0" step="0.01" max="100">
+        </div>
+        <div id="exportControls">
+            <button id="btnExportMIDI">Export MIDI</button>
+            <button id="btnExportWAV">Export WAV</button>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <!-- midi-writer-js for MIDI export -->
+    <script src="https://cdn.jsdelivr.net/npm/midi-writer-js@2.1.4/build/MidiWriter.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
