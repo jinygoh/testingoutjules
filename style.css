@@ -1,0 +1,11 @@
+body {
+    margin: 0;
+    overflow: hidden; /* Hide scrollbars */
+    background-color: #000; /* Optional: set a background color for behind the canvas */
+}
+
+#glCanvas {
+    display: block; /* Remove extra space below the canvas */
+    width: 100vw;
+    height: 100vh;
+}
