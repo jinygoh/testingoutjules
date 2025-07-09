@@ -89,8 +89,8 @@ function render(deltaTime) {
 
 
     // Layer 1: Deep Sky & Stars
-    drawStars(skyScrollX, deltaTime);
-    drawPsychedelicSky(skyScrollX, deltaTime); // Psychedelic sky drawn on top of stars for blending
+    drawPsychedelicSky(skyScrollX, deltaTime);
+    drawStars(skyScrollX, deltaTime); // Draw stars on top of the psychedelic sky
 
     // Layer 2: Celestial Bodies (Planets)
     // Planets have their own x,y world coordinates and speeds, not strictly tied to a layer's scroll speed here.
@@ -234,22 +234,22 @@ function drawStars(skyScrollX, deltaTime) {
         }
 
         const twinkle = (Math.sin(masterTime * STAR_TWINKLE_SPEED + star.twinklePhase) + 1) / 2; // 0 to 1
-        const currentBrightness = star.brightness * Utils.lerp(0.5, 1.0, twinkle);
-        const currentSize = star.size * Utils.lerp(0.7, 1.0, twinkle);
+        const currentBrightness = star.brightness * Utils.lerp(0.4, 1.0, twinkle); // Min brightness for twinkle slightly higher
+        const currentSize = star.size * Utils.lerp(0.6, 1.0, twinkle);
 
-        if (currentBrightness < 0.1) return; // Skip drawing very dim blinked-off stars
+        if (currentBrightness < 0.25) return; // Increased minimum brightness to draw
 
         ctx.fillStyle = Utils.hslToRgbString(
             star.hue,
             star.saturation,
-            Utils.clamp(currentBrightness * 100, 20, 90) // Map brightness to HSL lightness
+            Utils.clamp(currentBrightness * 100, 50, 100) // Make stars generally brighter (higher lightness)
         );
 
-        if (currentSize < 1) { // Draw as a single pixel if too small
+        const s = Math.max(1, Math.floor(currentSize)); // Ensure at least 1 pixel
+        if (s === 1) {
             ctx.fillRect(screenX, screenY, 1, 1);
         } else {
-            // Could draw small circle or square for larger stars
-            const s = Math.max(1, Math.floor(currentSize));
+            // Draw slightly larger stars as small squares
             ctx.fillRect(screenX - Math.floor(s/2), screenY - Math.floor(s/2), s, s);
         }
     });
@@ -564,7 +564,10 @@ function spawnPlant(mainSceneScrollX) {
     const worldX = screenXForSpawn + mainSceneScrollX;
 
     const terrainSurfaceY = getTerrainHeightAt(worldX, mainSceneScrollX);
-    if (terrainSurfaceY > RENDER_HEIGHT - 10) return null; // Avoid spawning too low.
+    // Avoid spawning plants too low or too high on sharp peaks.
+    if (terrainSurfaceY > RENDER_HEIGHT - 10 || terrainSurfaceY < RENDER_HEIGHT * 0.40) {
+         return null;
+    }
 
     // Check if this location is river, if so, don't spawn (or spawn aquatic type later)
     const riverCenterYNoise = PerlinNoise.noise(worldX * RIVER_NOISE_SCALE, riverPathSeed + masterTime * 0.01);
@@ -920,16 +923,18 @@ function drawFauna(currentScrollX, deltaTime) {
 
 /** Draws a Bird Flocker shape. Simple V-shape with animated wings. */
 function drawBirdFlockerShape(bird, screenX, hue) {
-    const bodySize = Math.max(1, Math.floor(bird.size / 2));
-    const wingLength = bird.size;
-    const wingAngle = Math.PI / 4 + Math.sin(bird.wingPhase) * (Math.PI / 12); // Base angle + flapping
+    const bodyBaseSize = Math.max(2, Math.floor(bird.size / 1.5)); // Make body a bit more prominent
+    const wingLength = bird.size * 1.2; // Slightly longer wings
+    const wingAngle = Math.PI / 5 + Math.sin(bird.wingPhase) * (Math.PI / 10); // Adjust angles for better V
 
-    const L = Utils.clamp(faunaPalette.lightnessMin + 10, 40, 70);
+    const L = Utils.clamp(faunaPalette.lightnessMin + 20, 50, 80); // Brighter birds
     const S = faunaPalette.saturation;
     ctx.fillStyle = Utils.hslToRgbString(hue, S, L);
 
-    // Body (a small square or circle)
-    ctx.fillRect(Math.floor(screenX - bodySize / 2), Math.floor(bird.y - bodySize / 2), bodySize, bodySize);
+    // Body (a small square)
+    const bodyX = Math.floor(screenX - bodyBaseSize / 2);
+    const bodyY = Math.floor(bird.y - bodyBaseSize / 2);
+    ctx.fillRect(bodyX, bodyY, bodyBaseSize, bodyBaseSize);
 
     // Wings - two lines or thin rectangles
     // Wing 1
@@ -965,16 +970,22 @@ function drawBirdFlockerShape(bird, screenX, hue) {
     };
 
     // Determine wing "tip" based on direction of flight for a V shape
-    const tipX = screenX + (bird.vx > 0 ? -bodySize * 0.5 : bodySize * 0.5);
+    // For simplicity, wingtips will be calculated relative to body center (screenX, bird.y)
 
-    drawLine(tipX, bird.y, screenX + Math.cos(wingAngle) * wingLength * (bird.vx > 0 ? 1 : -1), bird.y + Math.sin(wingAngle) * wingLength * 0.5);
-    drawLine(tipX, bird.y, screenX + Math.cos(wingAngle + Math.PI/2) * wingLength * (bird.vx > 0 ? 1 : -1) *0.7, bird.y - Math.sin(wingAngle+Math.PI/2) * wingLength*0.7);
+    // Wing 1 Tip
+    const w1tx = Math.floor(screenX + Math.cos(wingAngle) * wingLength * (bird.vx > 0 ? 0.7 : -0.7));
+    const w1ty = Math.floor(bird.y - Math.sin(wingAngle) * wingLength * 0.7);
+    if (w1tx >=0 && w1tx < RENDER_WIDTH && w1ty >=0 && w1ty < RENDER_HEIGHT) {
+        ctx.fillRect(w1tx, w1ty, Math.max(1, Math.floor(bodyBaseSize/2)), Math.max(1, Math.floor(bodyBaseSize/2))); // Small square for wingtip
+    }
 
-
-    // Simplified wing drawing: just two pixels for very small birds
-    // ctx.fillRect(Math.floor(screenX + Math.cos(wingAngle) * wingLength * 0.5), Math.floor(bird.y - Math.sin(wingAngle) * wingLength * 0.5), 1,1);
-    // ctx.fillRect(Math.floor(screenX - Math.cos(wingAngle) * wingLength * 0.5), Math.floor(bird.y - Math.sin(wingAngle) * wingLength * 0.5),1,1);
-
+    // Wing 2 Tip (other side, similar logic but mirrored/adjusted angle)
+    // A simple approach is to use the opposite cosine for x, same sine for y if body is symmetrical
+    const w2tx = Math.floor(screenX - Math.cos(wingAngle) * wingLength * (bird.vx > 0 ? 0.7 : -0.7));
+    const w2ty = Math.floor(bird.y - Math.sin(wingAngle) * wingLength * 0.7);
+     if (w2tx >=0 && w2tx < RENDER_WIDTH && w2ty >=0 && w2ty < RENDER_HEIGHT) {
+        ctx.fillRect(w2tx, w2ty, Math.max(1, Math.floor(bodyBaseSize/2)), Math.max(1, Math.floor(bodyBaseSize/2)));
+    }
 }
 
 
@@ -1030,7 +1041,10 @@ function spawnBoulder(mainSceneScrollX) {
     const worldX = screenXForSpawn + mainSceneScrollX;
 
     const terrainSurfaceY = getTerrainHeightAt(worldX, mainSceneScrollX);
-    if (terrainSurfaceY > RENDER_HEIGHT - 5) return null; // Too low
+    // Avoid spawning boulders too low or too high on sharp peaks for main landscape.
+    if (terrainSurfaceY > RENDER_HEIGHT - 5 || terrainSurfaceY < RENDER_HEIGHT * 0.40) {
+        return null;
+    }
 
     // Avoid spawning in river (similar check to plants)
     const riverCenterYNoise = PerlinNoise.noise(worldX * RIVER_NOISE_SCALE, riverPathSeed + masterTime * 0.01);
@@ -1168,7 +1182,7 @@ function triggerMajorSceneChange() {
 }
 
 // --- Foreground Parallax Layer ---
-const FOREGROUND_PARALLAX_FACTOR = 1.4; // Reduced from 1.75 to make it feel less close
+const FOREGROUND_PARALLAX_FACTOR = 1.2; // Further reduced to make it feel less close (was 1.4, originally 1.75)
 let fgFlora = []; // Array for foreground flora
 // let fgFauna = []; // TODO: For foreground fauna
 let fgBoulders = []; // Array for foreground boulders
