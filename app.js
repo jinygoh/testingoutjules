@@ -1074,8 +1074,8 @@ function drawBoulderShape(b, screenX) {
     const startDrawY = Math.floor(bY);
     const endDrawY = Math.ceil(b.y); // Boulder base is at b.y
 
-    for (letpx = startDrawX; px < endDrawX; px++) {
-        for (letpy = startDrawY; py < endDrawY; py++) {
+    for (let px = startDrawX; px < endDrawX; px++) { // Corrected letpx to let px
+        for (let py = startDrawY; py < endDrawY; py++) { // Corrected letpy to let py
             if (px < 0 || px >= RENDER_WIDTH || py < 0 || py >= RENDER_HEIGHT) continue;
 
             // Simple irregular shape using distance + noise
@@ -1168,7 +1168,7 @@ function triggerMajorSceneChange() {
 }
 
 // --- Foreground Parallax Layer ---
-const FOREGROUND_PARALLAX_FACTOR = 1.75; // How much faster foreground scrolls than main landscape
+const FOREGROUND_PARALLAX_FACTOR = 1.4; // Reduced from 1.75 to make it feel less close
 let fgFlora = []; // Array for foreground flora
 // let fgFauna = []; // TODO: For foreground fauna
 let fgBoulders = []; // Array for foreground boulders
