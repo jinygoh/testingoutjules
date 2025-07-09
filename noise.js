@@ -8,7 +8,7 @@ const PerlinNoise = (() => {
     // Permutation table `p`. This is doubled (0-511) to avoid modulo operations later.
     // It's initialized with a fixed set of shuffled numbers (0-255).
     // For different noise patterns on each run, this table should be re-shuffled using `seed()`.
-    const p = new Uint8Array(512);
+    const p_perm = new Uint8Array(512); // Renamed to avoid conflict with p in HSV conversion in app.js
     const permutation = [ 151,160,137,91,90,15, // This is a specific permutation by Ken Perlin.
     131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,8,99,37,240,21,10,23,
     190, 6,148,247,120,234,75,0,26,197,62,94,252,219,203,117,35,11,32,57,177,33,
@@ -23,8 +23,8 @@ const PerlinNoise = (() => {
     49,192,214, 31,181,199,106,157,184, 84,204,176,115,121,50,45,127, 4,150,254,
     138,236,205,93,222,114,67,29,24,72,243,141,128,195,78,66,215,61,156,180
     ];
-    // Initialize the permutation table `p` by duplicating the `permutation` array.
-    for (let i=0; i < 256 ; i++) p[i] = p[i+256] = permutation[i];
+    // Initialize the permutation table `p_perm` by duplicating the `permutation` array.
+    for (let i=0; i < 256 ; i++) p_perm[i] = p_perm[i+256] = permutation[i];
 
     /**
      * Fade function as defined by Ken Perlin.
@@ -69,7 +69,7 @@ const PerlinNoise = (() => {
          * @param {number} x - The x-coordinate.
          * @param {number} [y=0] - The y-coordinate.
          * @param {number} [z=0] - The z-coordinate.
-         * @returns {number} - Perlin noise value, typically in the range [-1, 1].
+         * @returns {number} - Perlin noise value, typically in the range [-0.707, 0.707] (approx [-1,1] after normalization).
          */
         noise: function(x, y = 0, z = 0) {
             // Find unit cube that contains the point.
@@ -88,23 +88,23 @@ const PerlinNoise = (() => {
             const w = fade(z);
 
             // Hash coordinates of the 8 cube corners
-            const A = p[X] + Y;
-            const AA = p[A] + Z;
-            const AB = p[A + 1] + Z;
-            const B = p[X + 1] + Y;
-            const BA = p[B] + Z;
-            const BB = p[B + 1] + Z;
+            const A = p_perm[X] + Y;
+            const AA = p_perm[A] + Z;
+            const AB = p_perm[A + 1] + Z;
+            const B = p_perm[X + 1] + Y;
+            const BA = p_perm[B] + Z;
+            const BB = p_perm[B + 1] + Z;
 
             // Add blended results from 8 corners of the cube
             // This is done by a series of linear interpolations (lerp).
-            return lerp(w, lerp(v, lerp(u, grad(p[AA], x, y, z),      // Top-front-left corner of the cube
-                                         grad(p[BA], x - 1, y, z)),   // Top-front-right
-                                 lerp(u, grad(p[AB], x, y - 1, z),   // Top-back-left
-                                         grad(p[BB], x - 1, y - 1, z))),// Top-back-right
-                         lerp(v, lerp(u, grad(p[AA + 1], x, y, z - 1),// Bottom-front-left
-                                         grad(p[BA + 1], x - 1, y, z - 1)),// Bottom-front-right
-                                 lerp(u, grad(p[AB + 1], x, y - 1, z - 1),// Bottom-back-left
-                                         grad(p[BB + 1], x - 1, y - 1, z - 1))));// Bottom-back-right
+            return lerp(w, lerp(v, lerp(u, grad(p_perm[AA], x, y, z),      // Top-front-left corner of the cube
+                                         grad(p_perm[BA], x - 1, y, z)),   // Top-front-right
+                                 lerp(u, grad(p_perm[AB], x, y - 1, z),   // Top-back-left
+                                         grad(p_perm[BB], x - 1, y - 1, z))),// Top-back-right
+                         lerp(v, lerp(u, grad(p_perm[AA + 1], x, y, z - 1),// Bottom-front-left
+                                         grad(p_perm[BA + 1], x - 1, y, z - 1)),// Bottom-front-right
+                                 lerp(u, grad(p_perm[AB + 1], x, y - 1, z - 1),// Bottom-back-left
+                                         grad(p_perm[BB + 1], x - 1, y - 1, z - 1))));// Bottom-back-right
         },
 
         /**
@@ -114,7 +114,7 @@ const PerlinNoise = (() => {
          */
         seed: function(seedValue) {
             // Create a new permutation array [0, 1, ..., 255]
-            const customPermutation = Array.from({length: 256}, (_, i) => i);
+            const customPermutation = Array.from({length: 256}, (_, idx) => idx);
 
             // Simple Linear Congruential Generator (LCG) for pseudo-random numbers
             // This is used to shuffle the customPermutation array.
@@ -132,8 +132,9 @@ const PerlinNoise = (() => {
                 [customPermutation[i], customPermutation[j]] = [customPermutation[j], customPermutation[i]];
             }
 
-            // Update the main permutation table `p` with the newly shuffled values.
-            for (let i=0; i < 256 ; i++) p[i] = p[i+256] = customPermutation[i];
+            // Update the main permutation table `p_perm` with the newly shuffled values.
+            for (let i=0; i < 256 ; i++) p_perm[i] = p_perm[i+256] = customPermutation[i];
+            console.log("PerlinNoise seeded with:", seedValue);
         }
     };
 })();
@@ -141,3 +142,5 @@ const PerlinNoise = (() => {
 // Example of how to use the seed function:
 // PerlinNoise.seed(Date.now()); // Seed with current time for varied results each run
 // PerlinNoise.seed(12345);    // Seed with a fixed number for reproducible noise
+// Initialize with a default random seed on load if desired
+PerlinNoise.seed(Date.now());

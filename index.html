@@ -3,15 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Procedural Pixel Art Generator</title>
+    <title>Endless Psychedelic Pixel Worlds</title>
     <style>
-        body { margin: 0; background-color: #222; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        canvas { border: 1px solid #555; image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges; }
+        body { margin: 0; background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+        canvas { border: 1px solid #333; image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges; }
     </style>
 </head>
 <body>
-    <canvas id="mainCanvas"></canvas>
-    <script src="noise.js"></script> <!-- Include noise.js before app.js -->
+    <canvas id="displayCanvas"></canvas>
+    <script src="noise.js"></script>
+    <script src="utils.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

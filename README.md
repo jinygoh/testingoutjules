@@ -1,56 +1,66 @@
-# Procedural Pixel Art Generator
+# Endless Psychedelic Pixel Worlds
 
-This is a backendless web application that procedurally generates endless visuals in a pixel art style. It currently features two modes:
-1.  **Fractal Mode:** Displays an interactive Mandelbrot set with psychedelic coloring.
-2.  **Landscape Mode:** Displays an endlessly scrolling procedurally generated landscape with a pixel art aesthetic.
+This is a backendless web application that procedurally generates an endless, evolving psychedelic alien world in a pixel art style. The application continuously morphs its visuals, presenting ever-changing surreal landscapes, skies, celestial bodies, flora, and fauna.
 
 ## Features
 
 *   **Pixel Art Rendering:** Visuals are rendered at a low internal resolution (320x240) and then scaled up with nearest-neighbor interpolation to preserve crisp pixels.
-*   **Mandelbrot Fractal:**
-    *   Interactive pan (click and drag) and zoom (mouse wheel).
-    *   Psychedelic coloring based on iteration counts using an HSV-to-RGB conversion.
-*   **Procedural Landscape:**
-    *   Endless horizontal scrolling.
-    *   Terrain generated using Perlin noise.
-    *   Banded color shading for a distinct pixel art style.
-    *   Simple gradient sky and a sun.
-*   **Mode Switching:** Press the 'M' key to toggle between Fractal and Landscape modes.
-*   **Minimal Dependencies:** Runs entirely in the browser using vanilla JavaScript, HTML, and CSS. No external libraries beyond the provided `noise.js` for Perlin noise.
+*   **Dynamic Psychedelic Sky:**
+    *   Generated using animated and rotating Perlin noise.
+    *   Colors evolve over time, creating aurora-like or nebula-like effects.
+*   **Procedural Celestial Bodies (Planets):**
+    *   Planets of varying sizes and colors are generated.
+    *   Surfaces have evolving, rotating procedural textures derived from Perlin noise.
+    *   Planets move across the sky, spawn, and despawn dynamically.
+*   **Surreal Scrolling Landscape:**
+    *   Endless horizontal scrolling terrain.
+    *   Terrain shape generated using multiple layers of Perlin noise, creating bizarre and unpredictable forms.
+    *   Features an evolving psychedelic color palette.
+    *   Atmospheric haze effect for depth and surrealism.
+*   **Alien Flora (Plants):**
+    *   Several types of alien plants (e.g., Tall Spires, Glow Orb Stalks, Crystal Clusters) are procedurally generated and placed on the landscape.
+    *   Plants have their own evolving color palette.
+    *   Many plant types feature subtle animations like size pulsation or bobbing.
+*   **Alien Fauna (Animals):**
+    *   Simple "Floater" type creatures are generated.
+    *   Floaters move through the sky with a bobbing, undulating motion.
+    *   Fauna has its own evolving color palette and pulsating visual effects.
+*   **Scene Evolution Engine:**
+    *   **Gradual Evolution:** Colors, textures, and positions of elements change continuously.
+    *   **Major Scene Transitions:** Approximately every 2 minutes, the entire world undergoes a significant transformation:
+        *   Perlin noise is re-seeded, fundamentally changing all generated patterns.
+        *   Color palettes for sky, landscape, flora, and fauna are newly evolved.
+        *   Existing planets, plants, and animals are cleared, making way for new entities fitting the new "biome."
+*   **Minimal Dependencies:** Runs entirely in the browser using vanilla JavaScript, HTML, and CSS. Uses self-contained `noise.js` (Perlin noise) and `utils.js` (helpers).
 
 ## How to Run
 
 1.  Clone or download the repository.
-2.  Open the `index.html` file in a modern web browser that supports HTML5 Canvas and JavaScript ES6.
+2.  Open the `index.html` file in a modern web browser that supports HTML5 Canvas and JavaScript ES6 (e.g., Chrome, Firefox, Edge, Safari).
 
 ## Code Structure
 
-*   `index.html`: The main HTML file that sets up the canvas and includes the JavaScript files.
+*   `index.html`: The main HTML file that sets up the canvas and includes the JavaScript files in the correct order.
 *   `app.js`: Contains the main application logic, including:
     *   Canvas setup and scaling for pixel art.
-    *   The main rendering loop (`controlledGameLoop`).
-    *   Mandelbrot set generation (`drawMandelbrot`) and interaction handlers.
-    *   Landscape generation (`drawLandscape`).
-    *   UI drawing (`drawUI`) for on-screen text.
-    *   Mode switching logic.
-*   `noise.js`: A self-contained Perlin noise implementation used for landscape generation.
-*   `style` (in `index.html`): Basic CSS for page layout and canvas display.
+    *   The main animation loop (`animationLoop`) and rendering pipeline (`render`).
+    *   Time management (`masterTime`, `sceneTime`, `deltaTime`).
+    *   All procedural generation modules:
+        *   `drawPsychedelicSky()`
+        *   `drawPlanets()`, `generatePlanetProps()`
+        *   `drawLandscape()`, `evolveLandscapePalette()`, `getTerrainHeightAt()`
+        *   `drawFlora()`, `spawnPlant()`, `evolveFloraPalette()`, individual plant type drawing functions.
+        *   `drawFauna()`, `spawnFauna()`, `evolveFaunaPalette()`, individual fauna type drawing functions.
+    *   Scene evolution logic (`triggerMajorSceneChange()`).
+*   `noise.js`: A self-contained Perlin noise implementation. It's seeded on load and re-seeded during major scene changes.
+*   `utils.js`: A collection of helper functions for randomization, math operations, color conversions (HSL to RGB), and a simple Vec2 class.
+*   Embedded `<style>` in `index.html`: Basic CSS for page layout and canvas display.
 
-## Future Development Ideas (Not Yet Implemented)
+## Implementation Notes
 
-*   Generation of pixel art animals and plants.
-*   More complex sky features (clouds, stars, aurorae).
-*   Procedurally generated planets or space scenes.
-*   More varied and surreal color palettes and themes.
-*   User controls for generation parameters (e.g., colors, terrain roughness, fractal iterations).
-*   Sound effects or ambient music.
-*   Additional fractal types (Julia sets, etc.).
-*   Performance optimizations for more complex scenes (e.g., Web Workers).
+*   **Backendless & No External Libraries:** The project is entirely client-side and self-contained.
+*   **Procedural Generation:** Leverages Perlin noise extensively for generating organic and unpredictable patterns. Randomness is used for variety in sizes, colors, speeds, and spawning.
+*   **Evolving Aesthetics:** Color palettes for different world elements (landscape, flora, fauna) evolve independently and also shift during major scene transitions, contributing to the psychedelic and ever-changing feel.
+*   **Performance:** While not heavily optimized, the low rendering resolution helps maintain reasonable performance for the complexity involved.
 
-## Implementation Choices
-
-*   **No React:** As per the initial requirement, the project uses vanilla JavaScript.
-*   **Free Imports:** All code is self-contained or uses the provided `noise.js`. No external libraries are fetched.
-*   **Backendless:** Runs entirely client-side in the browser.
-
-This project serves as a foundation for exploring procedural content generation techniques.
+This project aims to create a continuously surprising and visually rich procedurally generated world.
