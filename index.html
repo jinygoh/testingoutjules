@@ -9,10 +9,39 @@
 <body>
     <header>
         <h1>Color Palette Generator</h1>
-        <button id="randomPaletteBtn">Generate Random Palette</button>
+        <button id="randomPaletteBtn">Random Palette</button>
     </header>
 
     <main>
+        <section id="interactiveGeneratorSection">
+            <h2>Interactive Harmony Generator</h2>
+            <div class="controls">
+                <div>
+                    <label for="baseColorInput">Base Color (Hex):</label>
+                    <input type="text" id="baseColorInput" value="#3498db">
+                </div>
+                <div>
+                    <label for="harmonyRuleSelect">Harmony Rule:</label>
+                    <select id="harmonyRuleSelect">
+                        <option value="analogous">Analogous</option>
+                        <option value="monochromatic">Monochromatic</option>
+                        <option value="splitcomplement">Split Complement</option>
+                        <option value="triad">Triad</option>
+                        <option value="tetrad">Tetrad</option>
+                        <option value="complement">Complement (Base + Complement)</option>
+                        <option value="shades">Shades</option>
+                        <!-- TinyColor doesn't have 'shades' directly, we'll implement this with lighten/darken if chosen -->
+                    </select>
+                </div>
+                <button id="generateHarmonyBtn">Generate Harmony</button>
+            </div>
+        </section>
+
+        <hr class="separator">
+
+        <section id="paletteDisplayTitleSection">
+            <h2 id="paletteDisplayTitle">Color Palette</h2>
+        </section>
         <section id="paletteDisplay">
             <!-- Color palettes will be dynamically inserted here -->
             <div class="palette">

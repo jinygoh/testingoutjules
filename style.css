@@ -46,7 +46,95 @@ main {
     padding: 2rem;
     display: flex;
     flex-direction: column;
-    align-items: center; /* Center palette display */
+    align-items: center;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#interactiveGeneratorSection {
+    background-color: #fff;
+    padding: 1.5rem 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+    margin-bottom: 2rem;
+    width: 100%;
+    max-width: 700px; /* Max width for the controls section */
+    box-sizing: border-box;
+}
+
+#interactiveGeneratorSection h2 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    color: #333;
+}
+
+#interactiveGeneratorSection .controls {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+#interactiveGeneratorSection .controls > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+#interactiveGeneratorSection label {
+    font-weight: bold;
+    color: #555;
+    font-size: 0.9rem;
+}
+
+#interactiveGeneratorSection input[type="text"],
+#interactiveGeneratorSection select {
+    padding: 0.75rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#generateHarmonyBtn {
+    background-color: #3498db; /* Blue color */
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 1rem;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+    align-self: flex-start; /* Align button to the start if controls were row */
+    margin-top: 0.5rem;
+}
+
+#generateHarmonyBtn:hover {
+    background-color: #2980b9;
+}
+
+.separator {
+    border: none;
+    border-top: 1px solid #ddd;
+    margin: 2rem 0;
+    width: 100%;
+    max-width: 1200px;
+}
+
+#paletteDisplayTitleSection {
+    width: 100%;
+    max-width: 1200px; /* Match paletteDisplay max-width */
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+#paletteDisplayTitle {
+    margin: 0;
+    color: #333;
 }
 
 #paletteDisplay {
