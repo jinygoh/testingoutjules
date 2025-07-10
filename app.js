@@ -1108,36 +1108,72 @@ function drawFauna(currentScrollX, deltaTime) {
         // TODO: Add CRAWLER movement logic (stick to terrain).
             animal.wingPhase += speed * dt * 0.5; // Flapping speed based on actual speed
         } else if (animal.type === FAUNA_TYPES.CRAWLER) {
-            // Head (animal.worldX, animal.y) moves based on vx.
-            // animal.y for the head segment is current terrain height.
-            animal.y = getTerrainHeightAt(animal.worldX, currentScrollX);
-            animal.y += Math.sin(masterTime * 10 + animal.phaseOffset) * animal.size * 0.3; // Body undulation
+            const headWorldX = animal.worldX;
+            const headWorldY = getTerrainHeightAt(headWorldX, currentScrollX) + Math.sin(masterTime * 10 + animal.phaseOffset) * animal.size * 0.3; // Undulation for head
 
-            // Update segments to follow the head
-            let leadPos = { x: animal.worldX, y: animal.y };
+            // Update head position (animal.y is the head's y)
+            animal.y = headWorldY;
+
+            // Segments follow the segment in front (or head)
+            let leaderX = headWorldX;
+            let leaderY = headWorldY;
+
             for (let i = 0; i < animal.numSegments; i++) {
                 const segment = animal.segments[i];
-                const dx = leadPos.x - segment.x;
-                const dy = leadPos.y - segment.y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                const angle = Math.atan2(dy, dx);
+                const dx = leaderX - segment.x;
+                const dy = leaderY - segment.y;
+                const currentDist = Math.sqrt(dx * dx + dy * dy);
+                const angleToLeader = Math.atan2(dy, dx);
 
-                if (dist > animal.segmentSpacing) {
-                    segment.x = leadPos.x - Math.cos(angle) * animal.segmentSpacing;
-                    segment.y = leadPos.y - Math.sin(angle) * animal.segmentSpacing;
+                if (currentDist > animal.segmentSpacing) {
+                    segment.x = leaderX - Math.cos(angleToLeader) * animal.segmentSpacing;
+                    segment.y = leaderY - Math.sin(angleToLeader) * animal.segmentSpacing;
                 }
-                // Ensure segment y is on terrain (or slightly above/below for effect)
-                segment.y = getTerrainHeightAt(segment.x, currentScrollX) + Math.sin(masterTime * 10 + animal.phaseOffset + i * 0.8) * animal.size * 0.3;
-                leadPos = segment; // Next segment follows this one
+                // Ensure segment y is on terrain + its own undulation
+                segment.y = getTerrainHeightAt(segment.x, currentScrollX) +
+                            Math.sin(masterTime * 10 + animal.phaseOffset + (i + 1) * 0.5) * animal.size * 0.3;
+
+                leaderX = segment.x;
+                leaderY = segment.y;
             }
-             // Turn around if hitting edge or invalid terrain
-            const nextWorldX = animal.worldX + animal.vx * dt * 5; // Check a bit ahead
-            const nextTerrainY = getTerrainHeightAt(nextWorldX, currentScrollX);
-            if (nextTerrainY > RENDER_HEIGHT - 5 || nextTerrainY < RENDER_HEIGHT * 0.38 ||
-                (screenX < animal.size && animal.vx < 0) || (screenX > RENDER_WIDTH - animal.size && animal.vx > 0) ) {
+
+             // Turn around if hitting edge or invalid terrain (based on head's next position)
+            const nextHeadWorldX = animal.worldX + animal.vx * dt * 5; // Check a bit ahead for the head
+            const nextHeadTerrainY = getTerrainHeightAt(nextHeadWorldX, currentScrollX);
+
+            let turnAround = false;
+            if (nextHeadTerrainY > RENDER_HEIGHT - animal.size || nextHeadTerrainY < RENDER_HEIGHT * 0.38) {
+                turnAround = true; // Hit very low or very high terrain
+            }
+            if ((screenX < animal.size && animal.vx < 0) || (screenX > RENDER_WIDTH - animal.size && animal.vx > 0)) {
+                turnAround = true; // Hitting screen edges
+            }
+            // Additional check: if next step is in a river, also turn around
+            const riverCenterYNoise = PerlinNoise.noise(nextHeadWorldX * RIVER_NOISE_SCALE, riverPathSeed + masterTime * 0.01);
+            let riverCenterY = RIVER_CENTER_Y_BASE + riverCenterYNoise * RIVER_CENTER_Y_VARIATION;
+            const terrainAtNext = getTerrainHeightAt(nextHeadWorldX, currentScrollX); // Use original terrain height for river check
+            riverCenterY = Math.max(riverCenterY, terrainAtNext + currentRiverWidth * 0.3);
+            riverCenterY = Math.min(riverCenterY, RENDER_HEIGHT - currentRiverWidth);
+            const halfRiverWidth = currentRiverWidth / 2;
+            const riverTopEdge = riverCenterY - halfRiverWidth;
+            const riverBedFinalY = Math.max(terrainAtNext + RIVER_BED_DEPTH, riverTopEdge);
+
+            if (nextHeadTerrainY >= riverTopEdge && nextHeadTerrainY <= riverBedFinalY + halfRiverWidth*2) {
+                 turnAround = true; // Entering a river
+            }
+
+
+            if (turnAround) {
                  animal.vx *= -1;
-                 // Also flip segment order to make turn look more natural
-                 // animal.segments.reverse(); // This can be jarring, maybe a gradual turn is better later
+                 // Optional: Snap segments to new direction quickly (can look a bit abrupt)
+                 // leaderX = animal.worldX; // Head's current position
+                 // leaderY = animal.y;
+                 // for (let i = 0; i < animal.numSegments; i++) {
+                 //    animal.segments[i].x = leaderX - (i + 1) * animal.segmentSpacing * (animal.vx > 0 ? 1 : -1);
+                 //    animal.segments[i].y = getTerrainHeightAt(animal.segments[i].x, currentScrollX) + Math.sin(masterTime * 10 + animal.phaseOffset + (i + 1) * 0.5) * animal.size * 0.3;
+                 //    leaderX = animal.segments[i].x;
+                 //    leaderY = animal.segments[i].y;
+                 // }
             }
         }
 
