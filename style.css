@@ -62,6 +62,27 @@ main {
     box-sizing: border-box;
 }
 
+/* Styles for the new Color Picker Canvas elements */
+#colorPickerContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px; /* Space between hue wheel and SL picker */
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+}
+
+#hueWheelCanvas,
+#slPickerCanvas {
+    border: 1px solid #ccc;
+    cursor: crosshair;
+    box-shadow: 0 0 5px rgba(0,0,0,0.1);
+}
+
+#hueWheelCanvas {
+    border-radius: 50%; /* Make it visually a circle */
+}
+
 #interactiveGeneratorSection h2 {
     margin-top: 0;
     margin-bottom: 1.5rem;
