@@ -263,7 +263,7 @@ const PLANET_MIN_SIZE = 10;         // Minimum radius of a planet.
 const PLANET_MAX_SIZE = 40;         // Maximum radius of a planet.
 const PLANET_TEXTURE_SCALE = 0.05;  // Scale of Perlin noise for planet surface textures.
 const PLANET_ROTATION_SPEED_FACTOR = 0.1; // Base factor for planet rotation speed, adjusted by size.
-const PLANET_SPAWN_CHANCE = 0.01;   // Chance per frame to spawn a new planet if count is below MAX_PLANETS.
+const PLANET_SPAWN_CHANCE = 0.015;   // Increased from 0.01: Chance per frame to spawn a new planet if count is below MAX_PLANETS.
 
 /**
  * Generates properties for a new procedural planet.
@@ -497,14 +497,16 @@ function drawLandscape(currentScrollX) {
 // --- Alien Plant Generation (Flora) ---
 let flora = [];                     // Array to store active plant objects.
 const MAX_FLORA = 50;               // Maximum number of plants on screen.
-const FLORA_SPAWN_CHANCE = 0.02;    // Chance per frame to spawn a new plant if below max.
+const FLORA_SPAWN_CHANCE = 0.03;    // Increased from 0.02: Chance per frame to spawn a new plant if below max.
 const PLANT_OFFSCREEN_BUFFER = 50;  // Buffer distance off-screen before despawning plants.
 
 // Defines different types of plants that can be generated.
 const PLANT_TYPES = {
     TALL_SPIRE: 'TALL_SPIRE',
     GLOW_ORB_STALK: 'GLOW_ORB_STALK',
-    CRYSTAL_CLUSTER: 'CRYSTAL_CLUSTER'
+    CRYSTAL_CLUSTER: 'CRYSTAL_CLUSTER',
+    FLAT_CAP_MUSHROOM: 'FLAT_CAP_MUSHROOM',
+    TENDRIL_PLANT: 'TENDRIL_PLANT'
 };
 
 // Flora color palette, evolves over time.
@@ -564,9 +566,21 @@ function spawnPlant(mainSceneScrollX) {
     const worldX = screenXForSpawn + mainSceneScrollX;
 
     const terrainSurfaceY = getTerrainHeightAt(worldX, mainSceneScrollX);
+
     // Avoid spawning plants too low or too high on sharp peaks.
-    if (terrainSurfaceY > RENDER_HEIGHT - 10 || terrainSurfaceY < RENDER_HEIGHT * 0.40) {
+    if (terrainSurfaceY > RENDER_HEIGHT - 10 || terrainSurfaceY < RENDER_HEIGHT * 0.40) { // Keep this threshold
          return null;
+    }
+
+    // Check for steep slopes/peaks to prevent floating
+    const slopeCheckOffset = 3; // Check 3 pixels to the left/right
+    const heightLeft = getTerrainHeightAt(worldX - slopeCheckOffset, mainSceneScrollX);
+    const heightRight = getTerrainHeightAt(worldX + slopeCheckOffset, mainSceneScrollX);
+    const maxSlopeDifference = 5; // Max allowed height difference to consider it "spawnable"
+
+    if (Math.abs(terrainSurfaceY - heightLeft) > maxSlopeDifference ||
+        Math.abs(terrainSurfaceY - heightRight) > maxSlopeDifference) {
+        return null; // Too steep or on a sharp peak
     }
 
     // Check if this location is river, if so, don't spawn (or spawn aquatic type later)
@@ -656,6 +670,12 @@ function drawFlora(currentScrollX) {
             case PLANT_TYPES.CRYSTAL_CLUSTER:
                 drawCrystalCluster(p, screenX, dynamicHue);
                 break;
+            case PLANT_TYPES.FLAT_CAP_MUSHROOM:
+                drawFlatCapMushroom(p, screenX, dynamicHue);
+                break;
+            case PLANT_TYPES.TENDRIL_PLANT:
+                drawTendrilPlant(p, screenX, dynamicHue);
+                break;
             default: // Fallback for unknown types.
                 ctx.fillStyle = Utils.hslToRgbString(dynamicHue, floraPalette.saturation, Utils.randomElement([50,60]));
                 ctx.fillRect(screenX - Math.floor(p.size/4), Math.floor(p.y - p.size), Math.floor(p.size/2), Math.floor(p.size));
@@ -664,6 +684,79 @@ function drawFlora(currentScrollX) {
 }
 
 // --- Individual Plant Drawing Functions ---
+
+function drawFlatCapMushroom(plant, screenX, hue) {
+    const stalkHeight = plant.size * Utils.randomFloat(0.8, 1.2);
+    const stalkWidth = Math.max(2, Math.floor(plant.size / 3));
+    const capRadius = plant.size * Utils.randomFloat(1.0, 1.8); // Wider cap
+    const capThickness = Math.max(2, plant.size * 0.2);
+    const screenY = Math.floor(plant.y + plant.size); // Base of stalk
+
+    // Stalk
+    const stalkL = Utils.clamp(floraPalette.lightnessMin + 10, 30, 60);
+    ctx.fillStyle = Utils.hslToRgbString((hue + 10) % 360, floraPalette.saturation - 15, stalkL);
+    ctx.fillRect(Math.floor(screenX - stalkWidth / 2), Math.floor(screenY - stalkHeight), stalkWidth, Math.floor(stalkHeight));
+
+    // Cap (draw as a squashed ellipse / wide rectangle)
+    const capY = Math.floor(screenY - stalkHeight - capThickness / 2);
+    const capL = Utils.clamp(floraPalette.lightnessMax - 10, 40, 70);
+    ctx.fillStyle = Utils.hslToRgbString(hue, floraPalette.saturation, capL);
+
+    // Pixel-by-pixel for cap for rounded edges, or just a wide rect for simpler pixel art
+    const capStartX = Math.floor(screenX - capRadius);
+    const capEndX = Math.floor(screenX + capRadius);
+    for (let cx = capStartX; cx < capEndX; cx++) {
+        // Optional: slight curve to cap, for now simple rectangle
+        for (let cy = Math.floor(capY - capThickness/2); cy < Math.floor(capY + capThickness/2); cy++) {
+             if (cx >=0 && cx < RENDER_WIDTH && cy >=0 && cy < RENDER_HEIGHT) {
+                // Add some noise for spots/texture on cap
+                const spotNoise = PerlinNoise.noise(cx * 0.1 + plant.id, cy * 0.1 + plant.id, masterTime * 0.1);
+                let spotL = capL;
+                if (spotNoise > 0.3) { // Threshold for spots
+                    spotL = capL + Utils.randomFloat(10, 20) * (spotNoise - 0.3);
+                }
+                ctx.fillStyle = Utils.hslToRgbString(hue, floraPalette.saturation, Utils.clamp(spotL, 30, 85));
+                ctx.fillRect(cx, cy, 1, 1);
+            }
+        }
+    }
+}
+
+function drawTendrilPlant(plant, screenX, hue) {
+    const numTendrils = Utils.randomInt(3, 6);
+    const tendrilMaxLength = plant.size * Utils.randomFloat(2.0, 4.0);
+    const baseScreenY = Math.floor(plant.y + plant.size * 0.7); // Base slightly above ground for root point
+
+    for (let i = 0; i < numTendrils; i++) {
+        const angle = (i / numTendrils) * (Math.PI * 2) + plant.id + masterTime * 0.1 * (i % 2 === 0 ? 1 : -1); // Base angle + slow rotation
+        const currentMaxLength = tendrilMaxLength * Utils.mapRange(Math.sin(masterTime * 1.5 + plant.id + i * 0.8), -1, 1, 0.7, 1.0); // Pulsating length
+
+        let lastX = screenX;
+        let lastY = baseScreenY;
+
+        for (let seg = 0; seg < currentMaxLength; seg += 2) { // Draw segments
+            const segmentAngle = angle + Math.sin(seg * 0.1 + masterTime * 2 + i) * 0.5; // Wavy tendrils
+            const nextX = lastX + Math.cos(segmentAngle) * 2;
+            const nextY = lastY + Math.sin(segmentAngle) * 2;
+
+            const L = Utils.lerp(floraPalette.lightnessMax, floraPalette.lightnessMin, seg / currentMaxLength);
+            ctx.fillStyle = Utils.hslToRgbString((hue + seg * 2) % 360, floraPalette.saturation, Utils.clamp(L, 20, 80));
+
+            // Simple line of pixels (could be improved with Bresenham)
+            if (Math.floor(nextX) >= 0 && Math.floor(nextX) < RENDER_WIDTH && Math.floor(nextY) >= 0 && Math.floor(nextY) < RENDER_HEIGHT) {
+                 ctx.fillRect(Math.floor(nextX), Math.floor(nextY), 1, 1);
+            }
+            if (Math.floor(lastX) >= 0 && Math.floor(lastX) < RENDER_WIDTH && Math.floor(lastY) >= 0 && Math.floor(lastY) < RENDER_HEIGHT) {
+                 ctx.fillRect(Math.floor(lastX), Math.floor(lastY), 1, 1); // ensure connection
+            }
+            lastX = nextX;
+            lastY = nextY;
+            if (seg > currentMaxLength * 0.3 && Math.random() < 0.05) break; // Occasionally shorten a tendril
+        }
+    }
+}
+
+
 /** Draws a TALL_SPIRE plant type with pulsating size and color. */
 function drawTallSpire(plant, screenX, hue) {
     const pulseFactor = (Math.sin(masterTime * 2.5 + plant.id) + 1) / 2; // 0 to 1 pulsation.
@@ -745,14 +838,14 @@ function drawCrystalCluster(plant, screenX, hue) {
 // --- Alien Animal Generation (Fauna) ---
 let faunaList = [];                 // Array to store active animal objects.
 const MAX_FAUNA = 10;               // Maximum number of animals on screen.
-const FAUNA_SPAWN_CHANCE = 0.005;   // Chance per frame to spawn new fauna if below max (lower than plants).
+const FAUNA_SPAWN_CHANCE = 0.008;   // Increased from 0.005: Chance per frame to spawn new fauna.
 const FAUNA_OFFSCREEN_BUFFER = 100; // Buffer distance off-screen before despawning animals.
 
 // Defines different types of animals that can be generated.
 const FAUNA_TYPES = {
     FLOATER: 'FLOATER',
     BIRD_FLOCKER: 'BIRD_FLOCKER',
-    // CRAWLER: 'CRAWLER', // To be implemented in future.
+    CRAWLER: 'CRAWLER',
 };
 
 // Fauna color palette, evolves over time.
@@ -820,10 +913,40 @@ function spawnFauna(currentLayerScrollX) {
         if (animal.vx > 0) animal.vx = Utils.randomFloat(20, 40);
         else animal.vx = Utils.randomFloat(-40, -20);
         animal.vy = Utils.randomFloat(-3, 3); // Slower vertical changes
-        animal.wingPhase = Utils.randomFloat(0, Math.PI * 2); // For wing animation
-        animal.flockId = null; // For future flocking behavior
+        animal.wingPhase = Utils.randomFloat(0, Math.PI * 2);
+        animal.maxSpeed = Utils.randomFloat(20, 35); // Adjusted bird speed
+        animal.maxForce = Utils.randomFloat(0.2, 0.6);
+        animal.perceptionRadius = Utils.randomFloat(25, 50);
+    } else if (animal.type === FAUNA_TYPES.CRAWLER) {
+        animal.size = Utils.randomFloat(2, 4); // Segment size
+        animal.numSegments = Utils.randomInt(5, 10);
+        animal.segmentSpacing = animal.size * 0.8;
+        animal.segments = []; // Array to store [x,y] for each segment relative to animal.worldX, animal.y
+        animal.y = getTerrainHeightAt(animal.worldX, currentLayerScrollX); // Place on terrain
+
+        // Check if valid spawn location (not in river or too steep/high)
+        if (animal.y > RENDER_HEIGHT - 5 || animal.y < RENDER_HEIGHT * 0.40) return null;
+
+        const slopeCheckOffset = 2;
+        const heightLeft = getTerrainHeightAt(animal.worldX - slopeCheckOffset, currentLayerScrollX);
+        const heightRight = getTerrainHeightAt(animal.worldX + slopeCheckOffset, currentLayerScrollX);
+        if (Math.abs(animal.y - heightLeft) > 4 || Math.abs(animal.y - heightRight) > 4) return null;
+
+        const riverCenterYNoise = PerlinNoise.noise(animal.worldX * RIVER_NOISE_SCALE, riverPathSeed + masterTime * 0.01);
+        let riverCenterY = RIVER_CENTER_Y_BASE + riverCenterYNoise * RIVER_CENTER_Y_VARIATION;
+        riverCenterY = Math.max(riverCenterY, animal.y + currentRiverWidth * 0.3);
+        riverCenterY = Math.min(riverCenterY, RENDER_HEIGHT - currentRiverWidth);
+        const halfRiverWidth = currentRiverWidth / 2;
+        const riverTopEdge = riverCenterY - halfRiverWidth;
+        const riverBedFinalY = Math.max(animal.y + RIVER_BED_DEPTH, riverTopEdge);
+        if (animal.y >= riverTopEdge && animal.y <= riverBedFinalY + halfRiverWidth*2) return null;
+
+        for (let i = 0; i < animal.numSegments; i++) {
+            animal.segments.push({ x: -i * animal.segmentSpacing, y: 0 }); // Initial straight line behind head
+        }
+        animal.vx = Utils.randomFloat(5, 15) * (spawnFromLeft ? 1 : -1); // Crawlers are slower
+        animal.phaseOffset = Utils.randomFloat(0, Math.PI * 2); // For body undulation
     }
-    // TODO: Add CRAWLER specific spawning logic (e.g., place on terrain).
 
     return animal;
 }
@@ -876,18 +999,147 @@ function drawFauna(currentScrollX, deltaTime) {
             if (animal.y > RENDER_HEIGHT * 0.65 && animal.vy > 0) animal.vy *= -0.5; // Bounce from pseudo-bottom.
         } else if (animal.type === FAUNA_TYPES.BIRD_FLOCKER) {
             // Simple flight pattern: fly towards horizontal edge, slight vertical wave
-            animal.y += Math.sin(masterTime * 3 + animal.phaseOffset) * 0.1 * (animal.size / 4); // Gentle vertical wave
+            // animal.y += Math.sin(masterTime * 3 + animal.phaseOffset) * 0.1 * (animal.size / 4); // Gentle vertical wave
+            // animal.y += animal.vy * dt;
+
+            // // Change vertical direction occasionally or if near top/bottom of their band
+            // if (Math.random() < 0.005 ||
+            //     (animal.y < RENDER_HEIGHT * 0.05 && animal.vy < 0) ||
+            //     (animal.y > RENDER_HEIGHT * 0.4 && animal.vy > 0)) {
+            //     animal.vy = Utils.randomFloat(-3, 3);
+            // }
+            // animal.wingPhase += animal.vx > 0 ? dt * 20 : dt * -20; // Faster flapping for faster birds, direction matters
+
+            // --- Flocking Behavior ---
+            let separation = new Utils.Vec2(0, 0);
+            let alignment = new Utils.Vec2(0, 0);
+            let cohesion = new Utils.Vec2(0, 0);
+            let perceivedCount = 0;
+
+            faunaList.forEach(other => {
+                if (other !== animal && other.type === FAUNA_TYPES.BIRD_FLOCKER) {
+                    const otherScreenX = Math.floor(other.worldX - currentScrollX);
+                    const dSq = (screenX - otherScreenX)*(screenX - otherScreenX) + (animal.y - other.y)*(animal.y - other.y);
+
+                    if (dSq > 0 && dSq < animal.perceptionRadius * animal.perceptionRadius) {
+                        // Separation
+                        let diff = new Utils.Vec2(screenX - otherScreenX, animal.y - other.y);
+                        diff = diff.normalize();
+                        diff = diff.multiply(1 / Math.sqrt(dSq)); // Weight by distance (closer = stronger separation)
+                        separation = separation.add(diff);
+
+                        // Alignment
+                        alignment = alignment.add(new Utils.Vec2(other.vx, other.vy));
+
+                        // Cohesion
+                        cohesion = cohesion.add(new Utils.Vec2(otherScreenX, other.y)); // Use screen positions for cohesion center
+
+                        perceivedCount++;
+                    }
+                }
+            });
+
+            let steeringForce = new Utils.Vec2(0,0);
+
+            if (perceivedCount > 0) {
+                // Average and normalize alignment
+                alignment = alignment.multiply(1 / perceivedCount);
+                alignment = alignment.normalize().multiply(animal.maxSpeed); // Steer towards average velocity
+                let steerAlignment = alignment.subtract(new Utils.Vec2(animal.vx, animal.vy));
+                if (steerAlignment.magnitude() > animal.maxForce) {
+                    steerAlignment = steerAlignment.normalize().multiply(animal.maxForce);
+                }
+                steeringForce = steeringForce.add(steerAlignment.multiply(1.0)); // Alignment weight
+
+                // Average and normalize cohesion
+                cohesion = cohesion.multiply(1 / perceivedCount); // Center of mass of perceived flockmates
+                let desiredCohesion = new Utils.Vec2(cohesion.x - screenX, cohesion.y - animal.y); // Vector from current to CoM
+                desiredCohesion = desiredCohesion.normalize().multiply(animal.maxSpeed);
+                let steerCohesion = desiredCohesion.subtract(new Utils.Vec2(animal.vx, animal.vy));
+                if (steerCohesion.magnitude() > animal.maxForce) {
+                    steerCohesion = steerCohesion.normalize().multiply(animal.maxForce);
+                }
+                steeringForce = steeringForce.add(steerCohesion.multiply(0.8)); // Cohesion weight
+
+                // Average and normalize separation
+                separation = separation.multiply(1 / perceivedCount); // Average separation vector
+                // No need to steer if already separated enough, but here we always apply some force.
+                // separation = separation.normalize().multiply(animal.maxSpeed); // This might be too strong
+                // let steerSeparation = separation.subtract(new Utils.Vec2(animal.vx, animal.vy));
+                if (separation.magnitude() > 0) { // only apply if there's a separation vector
+                    separation = separation.normalize().multiply(animal.maxSpeed);
+                }
+                let steerSeparation = separation; // separation is already a desired velocity *away*
+                 if (steerSeparation.magnitude() > animal.maxForce) {
+                    steerSeparation = steerSeparation.normalize().multiply(animal.maxForce);
+                }
+                steeringForce = steeringForce.add(steerSeparation.multiply(1.5)); // Separation weight (often highest)
+            }
+
+            // Add a general wandering/target force (e.g., fly towards edge of screen)
+            let targetForce = new Utils.Vec2(animal.vx > 0 ? 1 : -1, 0); // Maintain general direction
+            targetForce = targetForce.normalize().multiply(animal.maxSpeed * 0.2); // Weaker force
+             if (targetForce.magnitude() > animal.maxForce * 0.5) {
+                targetForce = targetForce.normalize().multiply(animal.maxForce * 0.5);
+            }
+            steeringForce = steeringForce.add(targetForce);
+
+
+            // Apply steering force to velocity
+            animal.vx += steeringForce.x * dt; // These are accelerations effectively
+            animal.vy += steeringForce.y * dt;
+
+            // Limit speed
+            const speed = Math.sqrt(animal.vx*animal.vx + animal.vy*animal.vy);
+            if (speed > animal.maxSpeed) {
+                animal.vx = (animal.vx / speed) * animal.maxSpeed;
+                animal.vy = (animal.vy / speed) * animal.maxSpeed;
+            }
+
+            // Update position with new velocity (worldX already updated, now y)
             animal.y += animal.vy * dt;
 
-            // Change vertical direction occasionally or if near top/bottom of their band
-            if (Math.random() < 0.005 ||
-                (animal.y < RENDER_HEIGHT * 0.05 && animal.vy < 0) ||
-                (animal.y > RENDER_HEIGHT * 0.4 && animal.vy > 0)) {
-                animal.vy = Utils.randomFloat(-3, 3);
-            }
-            animal.wingPhase += animal.vx > 0 ? dt * 20 : dt * -20; // Faster flapping for faster birds, direction matters
+            // Boundary keeping
+            if (animal.y < RENDER_HEIGHT * 0.05 && animal.vy < 0) { animal.vy *= -0.5; animal.y = RENDER_HEIGHT * 0.05; }
+            if (animal.y > RENDER_HEIGHT * 0.5 && animal.vy > 0) { animal.vy *= -0.5; animal.y = RENDER_HEIGHT * 0.5; } // Birds stay in upper half
+
+            animal.wingPhase += speed * dt * 0.5; // Flapping speed based on actual speed
         }
         // TODO: Add CRAWLER movement logic (stick to terrain).
+            animal.wingPhase += speed * dt * 0.5; // Flapping speed based on actual speed
+        } else if (animal.type === FAUNA_TYPES.CRAWLER) {
+            // Head (animal.worldX, animal.y) moves based on vx.
+            // animal.y for the head segment is current terrain height.
+            animal.y = getTerrainHeightAt(animal.worldX, currentScrollX);
+            animal.y += Math.sin(masterTime * 10 + animal.phaseOffset) * animal.size * 0.3; // Body undulation
+
+            // Update segments to follow the head
+            let leadPos = { x: animal.worldX, y: animal.y };
+            for (let i = 0; i < animal.numSegments; i++) {
+                const segment = animal.segments[i];
+                const dx = leadPos.x - segment.x;
+                const dy = leadPos.y - segment.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                const angle = Math.atan2(dy, dx);
+
+                if (dist > animal.segmentSpacing) {
+                    segment.x = leadPos.x - Math.cos(angle) * animal.segmentSpacing;
+                    segment.y = leadPos.y - Math.sin(angle) * animal.segmentSpacing;
+                }
+                // Ensure segment y is on terrain (or slightly above/below for effect)
+                segment.y = getTerrainHeightAt(segment.x, currentScrollX) + Math.sin(masterTime * 10 + animal.phaseOffset + i * 0.8) * animal.size * 0.3;
+                leadPos = segment; // Next segment follows this one
+            }
+             // Turn around if hitting edge or invalid terrain
+            const nextWorldX = animal.worldX + animal.vx * dt * 5; // Check a bit ahead
+            const nextTerrainY = getTerrainHeightAt(nextWorldX, currentScrollX);
+            if (nextTerrainY > RENDER_HEIGHT - 5 || nextTerrainY < RENDER_HEIGHT * 0.38 ||
+                (screenX < animal.size && animal.vx < 0) || (screenX > RENDER_WIDTH - animal.size && animal.vx > 0) ) {
+                 animal.vx *= -1;
+                 // Also flip segment order to make turn look more natural
+                 // animal.segments.reverse(); // This can be jarring, maybe a gradual turn is better later
+            }
+        }
 
         // Despawn if far off-screen.
         if (screenX < -FAUNA_OFFSCREEN_BUFFER || screenX > RENDER_WIDTH + FAUNA_OFFSCREEN_BUFFER) {
@@ -912,14 +1164,37 @@ function drawFauna(currentScrollX, deltaTime) {
             case FAUNA_TYPES.BIRD_FLOCKER:
                 drawBirdFlockerShape(animal, screenX, dynamicHue);
                 break;
-            // case FAUNA_TYPES.CRAWLER:
-            //     drawCrawler(animal, screenX, dynamicHue);
-            //     break;
+            case FAUNA_TYPES.CRAWLER:
+                drawCrawlerShape(animal, currentScrollX, dynamicHue); // Pass currentScrollX for segment drawing
+                break;
         }
     }
 }
 
 // --- Individual Fauna Drawing Functions ---
+
+function drawCrawlerShape(crawler, currentScrollX, hue) {
+    const segmentSize = Math.max(1, Math.floor(crawler.size));
+    for (let i = 0; i < crawler.numSegments; i++) {
+        const segment = crawler.segments[i];
+        const segScreenX = Math.floor(segment.x - currentScrollX);
+        const segScreenY = Math.floor(segment.y);
+
+        if (segScreenX + segmentSize < 0 || segScreenX - segmentSize > RENDER_WIDTH ||
+            segScreenY + segmentSize < 0 || segScreenY - segmentSize > RENDER_HEIGHT) {
+            continue;
+        }
+
+        const L = Utils.lerp(faunaPalette.lightnessMin, faunaPalette.lightnessMax, (i / crawler.numSegments) * 0.5 + 0.25 + Math.sin(masterTime * 5 + i*0.5 + crawler.phaseOffset)*0.1);
+        const S = faunaPalette.saturation;
+        ctx.fillStyle = Utils.hslToRgbString((hue + i * 5) % 360, S, Utils.clamp(L, 30, 80) );
+
+        // Draw segment as a circle
+        ctx.beginPath();
+        ctx.arc(segScreenX, segScreenY, segmentSize, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
 
 /** Draws a Bird Flocker shape. Simple V-shape with animated wings. */
 function drawBirdFlockerShape(bird, screenX, hue) {
@@ -1031,7 +1306,7 @@ function drawFloater(animal, screenX, hue) {
 // --- Boulder Generation (Main Landscape) ---
 let boulders = [];
 const MAX_BOULDERS = 25;
-const BOULDER_SPAWN_CHANCE = 0.015;
+const BOULDER_SPAWN_CHANCE = 0.02; // Increased from 0.015
 const BOULDER_OFFSCREEN_BUFFER = 60;
 const BOULDER_MIN_SIZE = 4; // Diameter-ish
 const BOULDER_MAX_SIZE = 12;
@@ -1043,6 +1318,17 @@ function spawnBoulder(mainSceneScrollX) {
     const terrainSurfaceY = getTerrainHeightAt(worldX, mainSceneScrollX);
     // Avoid spawning boulders too low or too high on sharp peaks for main landscape.
     if (terrainSurfaceY > RENDER_HEIGHT - 5 || terrainSurfaceY < RENDER_HEIGHT * 0.40) {
+        return null;
+    }
+
+    // Check for steep slopes/peaks to prevent floating
+    const slopeCheckOffset = 3;
+    const heightLeft = getTerrainHeightAt(worldX - slopeCheckOffset, mainSceneScrollX);
+    const heightRight = getTerrainHeightAt(worldX + slopeCheckOffset, mainSceneScrollX);
+    const maxSlopeDifference = 6; // Boulders might tolerate slightly steeper slopes than plants
+
+    if (Math.abs(terrainSurfaceY - heightLeft) > maxSlopeDifference ||
+        Math.abs(terrainSurfaceY - heightRight) > maxSlopeDifference) {
         return null;
     }
 
@@ -1059,53 +1345,86 @@ function spawnBoulder(mainSceneScrollX) {
     }
 
     const size = Utils.randomFloat(BOULDER_MIN_SIZE, BOULDER_MAX_SIZE);
-    return {
+    const boulderData = { // Create the main object first
         id: masterTime + Math.random(),
         worldX: worldX,
         y: terrainSurfaceY, // Base of boulder sits on terrain
         size: size, // Overall size indicator
         width: size * Utils.randomFloat(0.8, 1.2),
         height: size * Utils.randomFloat(0.6, 1.0),
-        hueSeed: Utils.randomFloat(0, 360), // For slight color variations
-        shapeSeed: Utils.randomFloat(0, 1000), // For noise-based shape/texture
+        hueSeed: Utils.randomFloat(0, 360),
+        shapeSeed: Utils.randomFloat(0, 1000),
         createdAt: masterTime,
+        subBoulders: [] // Array to hold parameters for smaller attached boulders
     };
+
+    // Chance to add sub-boulders for more irregular shapes
+    if (Math.random() < 0.5) { // 50% chance for sub-boulders
+        const numSub = Utils.randomInt(1, 2);
+        for (let i = 0; i < numSub; i++) {
+            const subSizeFactor = Utils.randomFloat(0.3, 0.6);
+            boulderData.subBoulders.push({
+                offsetX: (Math.random() - 0.5) * boulderData.width * 0.5,
+                offsetY: (Math.random() - 0.5) * boulderData.height * 0.2,
+                width: boulderData.size * subSizeFactor * Utils.randomFloat(0.7, 1.3),
+                height: boulderData.size * subSizeFactor * Utils.randomFloat(0.7, 1.3),
+                shapeSeed: boulderData.shapeSeed + (i + 1) * 101
+            });
+        }
+    }
+    return boulderData;
 }
 
-function drawBoulderShape(b, screenX) {
-    const bX = Math.floor(screenX);
-    const bY = Math.floor(b.y - b.height); // Top of the boulder
+function drawSingleBoulderComponent(centerX, componentBaseY, width, height, shapeSeed, baseHue, baseSaturation, baseLightness) {
+    // componentBaseY is the y-coordinate of the bottom of this component.
+    // We draw from componentBaseY - height up to componentBaseY.
+    const startDrawX = Math.floor(centerX - width / 2);
+    const endDrawX = Math.ceil(centerX + width / 2);
+    const componentTopY = Math.floor(componentBaseY - height);
+    const componentBottomY = Math.ceil(componentBaseY);
 
-    // Base boulder color (desaturated landscape palette)
-    const baseBoulderHue = (landscapePalette.baseHue + b.hueSeed) % 360;
-    const baseBoulderSaturation = landscapePalette.saturation * Utils.randomFloat(0.1, 0.3); // Much less saturated
-    const baseBoulderLightness = landscapePalette.lightnessMin * Utils.randomFloat(0.8, 1.2);
-
-    // Draw as a main ellipse/rect and maybe a couple smaller ones for irregularity
-    // For pixel art, iterate bounding box and use noise for shape/texture
-    const startDrawX = Math.floor(bX - b.width / 2);
-    const endDrawX = Math.ceil(bX + b.width / 2);
-    const startDrawY = Math.floor(bY);
-    const endDrawY = Math.ceil(b.y); // Boulder base is at b.y
-
-    for (let px = startDrawX; px < endDrawX; px++) { // Corrected letpx to let px
-        for (let py = startDrawY; py < endDrawY; py++) { // Corrected letpy to let py
+    for (let px = startDrawX; px < endDrawX; px++) {
+        for (let py = componentTopY; py < componentBottomY; py++) {
             if (px < 0 || px >= RENDER_WIDTH || py < 0 || py >= RENDER_HEIGHT) continue;
 
-            // Simple irregular shape using distance + noise
-            const dx = (px - bX) / (b.width / 2); // Normalized distance from center x
-            const dy = (py - (bY + b.height/2) ) / (b.height / 2); // Normalized distance from center y
-            const dist = dx*dx + dy*dy; // Elliptical distance
+            const dx = (px - centerX) / (width / 2);
+            const dy = (py - (componentBaseY - height / 2)) / (height / 2); // distance from component's own center
+            const dist = dx * dx + dy * dy;
 
-            const shapeNoise = PerlinNoise.noise(px * 0.1 + b.shapeSeed, py * 0.1 + b.shapeSeed);
-            if (dist < 0.8 + shapeNoise * 0.4) { // Main body
-                const textureNoise = PerlinNoise.noise(px * 0.2 + b.shapeSeed + 100, py * 0.2 + b.shapeSeed + 100, masterTime * 0.05);
-                const L = Utils.clamp(baseBoulderLightness + (textureNoise * 20 - 10), 10, 50);
-                ctx.fillStyle = Utils.hslToRgbString(baseBoulderHue, baseBoulderSaturation, L);
+            const shapeNoise = PerlinNoise.noise(px * 0.1 + shapeSeed, py * 0.1 + shapeSeed);
+            // Increased noise influence for weirder shapes: 0.5 (was 0.4)
+            if (dist < 0.7 + shapeNoise * 0.6) {
+                const textureNoise = PerlinNoise.noise(px * 0.2 + shapeSeed + 100, py * 0.2 + shapeSeed + 100, masterTime * 0.05);
+                // Wider lightness variation for texture
+                const L = Utils.clamp(baseLightness + (textureNoise * 30 - 15), 5, 60);
+                ctx.fillStyle = Utils.hslToRgbString(baseHue, baseSaturation, L);
                 ctx.fillRect(px, py, 1, 1);
             }
         }
     }
+}
+
+function drawBoulderShape(b, screenX) {
+    const mainBoulderCenterX = Math.floor(screenX);
+
+    const baseBoulderHue = (landscapePalette.baseHue + b.hueSeed) % 360;
+    // Even more desaturated, and bit darker overall for boulders
+    const baseBoulderSaturation = landscapePalette.saturation * Utils.randomFloat(0.01, 0.15);
+    const baseBoulderLightness = landscapePalette.lightnessMin * Utils.randomFloat(0.6, 1.0);
+
+    // Draw main boulder component
+    // b.y is the base of the main boulder component.
+    drawSingleBoulderComponent(mainBoulderCenterX, b.y, b.width, b.height, b.shapeSeed, baseBoulderHue, baseBoulderSaturation, baseBoulderLightness);
+
+    // Draw sub-boulders
+    b.subBoulders.forEach(sub => {
+        const subCenterX = mainBoulderCenterX + sub.offsetX;
+        // Sub-boulders are also grounded relative to the main boulder's base (b.y), then apply their Y offset.
+        // A positive sub.offsetY means it's slightly lower (further down on screen) than main boulder's base if desired,
+        // or higher if negative. For boulders, usually want them at or slightly above main base.
+        const subBaseY = b.y + sub.offsetY;
+        drawSingleBoulderComponent(subCenterX, subBaseY, sub.width, sub.height, sub.shapeSeed, baseBoulderHue, baseBoulderSaturation, baseBoulderLightness * 0.9); // Slightly darker
+    });
 }
 
 
@@ -1182,17 +1501,17 @@ function triggerMajorSceneChange() {
 }
 
 // --- Foreground Parallax Layer ---
-const FOREGROUND_PARALLAX_FACTOR = 1.2; // Further reduced to make it feel less close (was 1.4, originally 1.75)
+const FOREGROUND_PARALLAX_FACTOR = 1.1; // Further reduced (was 1.2, 1.4, originally 1.75)
 let fgFlora = []; // Array for foreground flora
 // let fgFauna = []; // TODO: For foreground fauna
 let fgBoulders = []; // Array for foreground boulders
 
 const MAX_FG_FLORA = 15;
-const FG_FLORA_SPAWN_CHANCE = 0.03;
+const FG_FLORA_SPAWN_CHANCE = 0.04; // Increased from 0.03
 const FG_PLANT_OFFSCREEN_BUFFER = 100; // Larger buffer as they move faster
 
 const MAX_FG_BOULDERS = 5;
-const FG_BOULDER_SPAWN_CHANCE = 0.008;
+const FG_BOULDER_SPAWN_CHANCE = 0.012; // Increased from 0.008
 
 
 // Spawning for foreground elements will be simpler, often near bottom of screen
